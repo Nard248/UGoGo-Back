@@ -14,7 +14,9 @@ variables:
   imageRepository: 'backend'
   containerRegistry: 'ugogobackend.azurecr.io'
   dockerfilePath: '$(Build.SourcesDirectory)/Dockerfile'
+  # Use Build ID as a unique key and add 'latest' as another tag
   tag: '$(Build.BuildId)'
+  latestTag: 'latest'
 
   # Agent VM image name
   vmImageName: 'ubuntu-latest'
@@ -36,4 +38,5 @@ stages:
         dockerfile: $(dockerfilePath)
         containerRegistry: $(dockerRegistryServiceConnection)
         tags: |
+          $(latestTag)
           $(tag)
