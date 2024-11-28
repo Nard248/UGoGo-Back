@@ -17,7 +17,7 @@ WORKDIR /app
 COPY . /app
 
 # Install required Python packages
-RUN pip3 install --no-cache-dir flask
+RUN pip3 install --no-cache-dir -r requirements.txt
 
 # Expose port 5000 for Flask
 EXPOSE 5000
