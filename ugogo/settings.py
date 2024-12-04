@@ -82,13 +82,17 @@ WSGI_APPLICATION = 'ugogo.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'ugogo',
-        'USER': 'postgres',
-        'PASSWORD': '1234',
-        'HOST': 'localhost',
+        'NAME': 'ugogo_db',
+        'USER': 'ugogo_admin',
+        'PASSWORD': 'FCxV3VrZvUCg6QgA',
+        'HOST': 'ugogo.postgres.database.azure.com',
         'PORT': '5432',
+        'OPTIONS': {
+            'sslmode': 'require',
+        },
     }
 }
+
 
 
 # Password validation
