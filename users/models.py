@@ -1,12 +1,16 @@
 from django.db import models
-from django.contrib.postgres.fields import JSONField  # Use only if PostgreSQL is your DB
+
 
 class User(models.Model):
-    name = models.CharField(max_length=255, null=True, blank=True)
-    email = models.EmailField(max_length=255, unique=True, null=True, blank=True)
-    hashed_password = models.CharField(max_length=255)
-    # pid = models.OneToOneField('PID', on_delete=models.SET_NULL, null=True, blank=True, related_name='user')  # Assuming PID is another model
-    # ticket_ids = JSONField(null=True, blank=True)  # Requires PostgreSQL; use TextField with JSON serialization for other DBs
+    email = models.EmailField(max_length=254, unique=True)
+    first_name = models.CharField(max_length=100)
+    last_name = models.CharField(max_length=100)
+    phone = models.CharField(max_length=50, null=True, blank=True)
+    image_id = models.IntegerField(null=True, blank=True)
+    hashed_password = models.CharField(max_length=255, default=None)  # Add this field
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    deleted_at = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
-        return self.name or f"User {self.id}"
+        return f"{self.first_name} {self.last_name}"
