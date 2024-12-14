@@ -1,8 +1,15 @@
+# booking/models.py
+from django.conf import settings
 from django.db import models
+
 
 class Ticket(models.Model):
     picture = models.CharField(max_length=255, null=True, blank=True)
-    user = models.ForeignKey('users.User', on_delete=models.CASCADE, related_name='tickets')  # Assuming `User` is in the `users` app
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,  # Refer to the custom user model
+        on_delete=models.CASCADE,
+        related_name='tickets'
+    )
 
     def __str__(self):
         return f"Ticket {self.id} for User {self.user.id}"
@@ -10,10 +17,20 @@ class Ticket(models.Model):
 
 class Flight(models.Model):
     date = models.DateField(null=True, blank=True)
-    user = models.ForeignKey('users.User', on_delete=models.CASCADE, related_name='flights')  # Assuming `User` is in the `users` app
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,  # Refer to the custom user model
+        on_delete=models.CASCADE,
+        related_name='flights'
+    )
     origin = models.CharField(max_length=255, null=True, blank=True)
     destination = models.CharField(max_length=255, null=True, blank=True)
-    ticket = models.ForeignKey(Ticket, on_delete=models.CASCADE, related_name='flights', null=True, blank=True)
+    ticket = models.ForeignKey(
+        Ticket,
+        on_delete=models.CASCADE,
+        related_name='flights',
+        null=True,
+        blank=True
+    )
 
     def __str__(self):
         return f"Flight {self.id} from {self.origin} to {self.destination}"
@@ -26,8 +43,18 @@ class Offer(models.Model):
         ('rejected', 'Rejected'),
     ]
 
-    sender = models.ForeignKey('users.User', on_delete=models.CASCADE, related_name='sent_offers')  # Assuming `User` is in the `users` app
-    courier = models.ForeignKey('users.User', on_delete=models.CASCADE, related_name='courier_offers', null=True, blank=True)  # Assuming `User` is in the `users` app
+    sender = models.ForeignKey(
+        settings.AUTH_USER_MODEL,  # Refer to the custom user model
+        on_delete=models.CASCADE,
+        related_name='sent_offers'
+    )
+    courier = models.ForeignKey(
+        settings.AUTH_USER_MODEL,  # Refer to the custom user model
+        on_delete=models.CASCADE,
+        related_name='courier_offers',
+        null=True,
+        blank=True
+    )
     flight = models.ForeignKey(Flight, on_delete=models.CASCADE, related_name='offers')
     status = models.CharField(max_length=255, choices=STATUS_CHOICES, default='pending')
     price = models.DecimalField(max_digits=10, decimal_places=2)
@@ -37,5 +64,5 @@ class Offer(models.Model):
 
     class Meta:
         indexes = [
-            models.Index(fields=['sender']),  # Corresponds to "Offer_index_0"
+            models.Index(fields=['sender']),  # Index for sender
         ]

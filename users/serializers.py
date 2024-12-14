@@ -1,23 +1,25 @@
 from rest_framework import serializers
-from django.contrib.auth.hashers import make_password, check_password
-from .models import User
+from .models import Users
 
-class UserRegistrationSerializer(serializers.ModelSerializer):
+
+class RegisterUserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
 
     class Meta:
-        model = User
-        fields = ['first_name', 'last_name', 'email', 'password', 'phone', 'image_id']
+        model = Users
+        fields = ['email', 'first_name', 'last_name', 'password']
 
     def create(self, validated_data):
-        validated_data['hashed_password'] = make_password(validated_data.pop('password'))
-        return User.objects.create(**validated_data)
+        user = Users.objects.create_user(
+            email=validated_data['email'],
+            password=validated_data['password'],
+            first_name=validated_data['first_name'],
+            last_name=validated_data['last_name'],
+        )
+        return user
 
-class UserLoginSerializer(serializers.Serializer):
-    email = serializers.EmailField()
-    password = serializers.CharField(write_only=True)
 
-class UserResponseSerializer(serializers.ModelSerializer):
+class CustomUserSerializer(serializers.ModelSerializer):
     class Meta:
-        model = User
-        fields = ['id', 'first_name', 'last_name', 'email', 'phone', 'image_id']
+        model = Users
+        fields = ['id', 'email', 'first_name', 'last_name']

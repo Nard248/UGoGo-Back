@@ -1,28 +1,71 @@
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from django.contrib.auth.hashers import check_password
-from .models import User
-from .serializers import UserRegistrationSerializer, UserLoginSerializer, UserResponseSerializer
+from rest_framework.permissions import AllowAny
+from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from .serializers import RegisterUserSerializer, CustomUserSerializer
+from .models import Users
+
 
 class RegisterUserView(APIView):
+    """
+    Endpoint for registering a new user.
+    """
+    permission_classes = [AllowAny]
+
+    @swagger_auto_schema(
+        operation_description="Register a new user.",
+        request_body=RegisterUserSerializer,
+        responses={
+            201: "User registered successfully.",
+            400: "Bad request - Validation error",
+        }
+    )
     def post(self, request):
-        serializer = UserRegistrationSerializer(data=request.data)
+        serializer = RegisterUserSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
-            return Response(UserResponseSerializer(user).data, status=status.HTTP_201_CREATED)
+            return Response({
+                "message": "User registered successfully.",
+                "user": CustomUserSerializer(user).data
+            }, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class LoginUserView(APIView):
-    def post(self, request):
-        serializer = UserLoginSerializer(data=request.data)
-        if serializer.is_valid():
-            try:
-                user = User.objects.get(email=serializer.validated_data['email'])
-                if check_password(serializer.validated_data['password'], user.hashed_password):
-                    return Response(UserResponseSerializer(user).data, status=status.HTTP_200_OK)
-                else:
-                    return Response({"error": "Invalid password"}, status=status.HTTP_401_UNAUTHORIZED)
-            except User.DoesNotExist:
-                return Response({"error": "User does not exist"}, status=status.HTTP_404_NOT_FOUND)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    """
+    Custom serializer for token pair (access and refresh tokens).
+    """
+    def validate(self, attrs):
+        data = super().validate(attrs)
+        user = self.user
+
+        # Add additional user info to the response
+        data["user"] = {
+            "id": user.id,
+            "email": user.email,
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+        }
+        return data
+
+
+class CustomTokenObtainPairView(TokenObtainPairView):
+    """
+    Custom view to handle login and JWT token issuance.
+    """
+    serializer_class = CustomTokenObtainPairSerializer
+
+    @swagger_auto_schema(
+        operation_description="Obtain access and refresh tokens by providing valid credentials.",
+        request_body=TokenObtainPairSerializer,
+        responses={
+            200: "Access and refresh tokens issued successfully.",
+            401: "Unauthorized - Invalid credentials",
+        }
+    )
+    def post(self, request, *args, **kwargs):
+        return super().post(request, *args, **kwargs)
+
