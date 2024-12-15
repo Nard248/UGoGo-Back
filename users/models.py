@@ -25,7 +25,6 @@ class Users(AbstractBaseUser, PermissionsMixin):
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False, null=True)
     date_joined = models.DateTimeField(auto_now_add=True)
-    is_shipper = models.BooleanField(default=False)
 
     objects = CustomUserManager()
 
