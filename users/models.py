@@ -33,3 +33,12 @@ class Users(AbstractBaseUser, PermissionsMixin):
 
     class Meta:
         db_table = "users"  # Ensure table name matches
+
+
+class PID(models.Model):
+    picture = models.CharField(max_length=255)
+    is_verified = models.BooleanField(default=False)
+    expiration_date = models.DateField()
+
+    def __str__(self):
+        return f"PID Verified: {self.is_verified}"
