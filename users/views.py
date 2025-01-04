@@ -2,11 +2,14 @@ from drf_yasg.utils import swagger_auto_schema
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from .serializers import RegisterUserSerializer, CustomUserSerializer
 from .models import Users
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework import serializers
+
 
 
 class RegisterUserView(APIView):
@@ -69,3 +72,39 @@ class CustomTokenObtainPairView(TokenObtainPairView):
     def post(self, request, *args, **kwargs):
         return super().post(request, *args, **kwargs)
 
+class LogOutSerializer(serializers.Serializer):
+    """
+    Serializer for the Logout request body.
+    """
+    refresh = serializers.CharField(help_text="The refresh token to be blacklisted.")
+
+class LogOutView(APIView):
+    """
+    Custom endpoint for logging out users by blacklisting refresh tokens.
+    """
+    # Allow any user to access this endpoint
+    permission_classes = [AllowAny]
+
+    @swagger_auto_schema(
+        operation_description="Log out the user by blacklisting the given refresh token.",
+        request_body=LogOutSerializer,
+        responses={
+            200: "Successfully logged out.",
+            400: "Invalid refresh token or failed to blacklist.",
+        }
+    )
+    def post(self, request):
+        try:
+            # Parse the refresh token from the request body
+            refresh_token = request.data.get("refresh")
+            if not refresh_token:
+                return Response({"error": "Refresh token is required for logout."}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Attempt to blacklist the refresh token
+            token = RefreshToken(refresh_token)
+            token.blacklist()
+
+            return Response({"message": "Successfully logged out."}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": "Invalid refresh token or failed to blacklist."},
+                            status=status.HTTP_400_BAD_REQUEST)
