@@ -8,7 +8,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-&b)b9=ldmzq6p%v7myop3d+g8=a9pwm$^j0p1+6rhmn#l^^zft'
 DEBUG = True
 
-ALLOWED_HOSTS = ['ugogo-auhdbad8drdma7f6.canadacentral-01.azurewebsites.net', '127.0.0.1', '0.0.0.0']
+ALLOWED_HOSTS = ['ugogo-auhdbad8drdma7f6.canadacentral-01.azurewebsites.net', '127.0.0.1', '0.0.0.0', 'localhost']
 
 AUTH_USER_MODEL = 'users.Users'
 
