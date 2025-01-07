@@ -52,6 +52,15 @@ class UserFlightSerializer(serializers.ModelSerializer):
             'user', 'publish_datetime'
         ]
 
+    def create(self, validated_data):
+        # Automatically assign the authenticated user
+        request = self.context.get('request')
+        user = request.user if request else None
+        if user is None or not user.is_authenticated:
+            raise serializers.ValidationError("Authentication credentials were not provided.")
+        validated_data['user'] = user
+        return super().create(validated_data)
+
 class OfferSerializer(serializers.ModelSerializer):
     user_flight = UserFlightSerializer(read_only=True)
     user_flight_id = serializers.PrimaryKeyRelatedField(
