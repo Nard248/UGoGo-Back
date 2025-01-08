@@ -12,6 +12,9 @@ ALLOWED_HOSTS = ['ugogo-auhdbad8drdma7f6.canadacentral-01.azurewebsites.net', '1
 
 AUTH_USER_MODEL = 'users.Users'
 
+CSRF_TRUSTED_ORIGINS = [
+    "https://ugogo-auhdbad8drdma7f6.canadacentral-01.azurewebsites.net"
+]
 # Application definition
 INSTALLED_APPS = [
     'django.contrib.admin',
