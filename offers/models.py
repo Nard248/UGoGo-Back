@@ -44,6 +44,7 @@ class Offer(models.Model):
     price = models.DecimalField(max_digits=10, decimal_places=2)
     available_weight = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     available_space = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    notes = models.TextField(blank=True, null=True)  # Add this line
 
     def __str__(self):
         return f"Offer {self.id} by {self.courier.email} - Status: {self.status}"
