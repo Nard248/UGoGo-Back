@@ -1,5 +1,3 @@
-# locations/views.py
-
 from rest_framework import generics, permissions
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
@@ -12,7 +10,7 @@ class CountryListCreateView(generics.ListCreateAPIView):
     serializer_class = CountrySerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
-    @swagger_auto_schema(
+    @swagger_auto_schema( exclude = True,
         operation_description="Retrieve a list of all countries or create a new country.",
         responses={
             200: CountrySerializer(many=True),
@@ -25,7 +23,7 @@ class CountryListCreateView(generics.ListCreateAPIView):
     def post(self, request, *args, **kwargs):
         return super().post(request, *args, **kwargs)
 
-    @swagger_auto_schema(
+    @swagger_auto_schema( exclude = True,
         operation_description="Retrieve a list of all countries.",
         responses={
             200: CountrySerializer(many=True),
@@ -41,7 +39,7 @@ class CountryDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = CountrySerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
-    @swagger_auto_schema(
+    @swagger_auto_schema( exclude = True,
         operation_description="Retrieve details of a specific country.",
         responses={
             200: CountrySerializer(),
@@ -51,7 +49,7 @@ class CountryDetailView(generics.RetrieveUpdateDestroyAPIView):
     def get(self, request, *args, **kwargs):
         return super().get(request, *args, **kwargs)
 
-    @swagger_auto_schema(
+    @swagger_auto_schema( exclude = True,
         operation_description="Update a specific country.",
         responses={
             200: CountrySerializer(),
@@ -64,7 +62,7 @@ class CountryDetailView(generics.RetrieveUpdateDestroyAPIView):
     def put(self, request, *args, **kwargs):
         return super().put(request, *args, **kwargs)
 
-    @swagger_auto_schema(
+    @swagger_auto_schema( exclude = True,
         operation_description="Partially update a specific country.",
         responses={
             200: CountrySerializer(),
@@ -77,7 +75,7 @@ class CountryDetailView(generics.RetrieveUpdateDestroyAPIView):
     def patch(self, request, *args, **kwargs):
         return super().patch(request, *args, **kwargs)
 
-    @swagger_auto_schema(
+    @swagger_auto_schema( exclude = True,
         operation_description="Delete a specific country.",
         responses={
             204: "No Content - Successfully deleted",
@@ -94,7 +92,7 @@ class CityListCreateView(generics.ListCreateAPIView):
     serializer_class = CitySerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
-    @swagger_auto_schema(
+    @swagger_auto_schema( exclude = True,
         operation_description="Retrieve a list of all cities or create a new city.",
         responses={
             200: CitySerializer(many=True),
@@ -107,7 +105,7 @@ class CityListCreateView(generics.ListCreateAPIView):
     def post(self, request, *args, **kwargs):
         return super().post(request, *args, **kwargs)
 
-    @swagger_auto_schema(
+    @swagger_auto_schema( exclude = True,
         operation_description="Retrieve a list of all cities.",
         responses={
             200: CitySerializer(many=True),
@@ -123,7 +121,7 @@ class CityDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = CitySerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
-    @swagger_auto_schema(
+    @swagger_auto_schema( exclude = True,
         operation_description="Retrieve details of a specific city.",
         responses={
             200: CitySerializer(),
@@ -132,8 +130,8 @@ class CityDetailView(generics.RetrieveUpdateDestroyAPIView):
     )
     def get(self, request, *args, **kwargs):
         return super().get(request, *args, **kwargs)
-
-    @swagger_auto_schema(
+    #
+    @swagger_auto_schema( exclude = True,
         operation_description="Update a specific city.",
         responses={
             200: CitySerializer(),
@@ -146,7 +144,7 @@ class CityDetailView(generics.RetrieveUpdateDestroyAPIView):
     def put(self, request, *args, **kwargs):
         return super().put(request, *args, **kwargs)
 
-    @swagger_auto_schema(
+    @swagger_auto_schema( exclude = True,
         operation_description="Partially update a specific city.",
         responses={
             200: CitySerializer(),
@@ -159,7 +157,7 @@ class CityDetailView(generics.RetrieveUpdateDestroyAPIView):
     def patch(self, request, *args, **kwargs):
         return super().patch(request, *args, **kwargs)
 
-    @swagger_auto_schema(
+    @swagger_auto_schema( exclude = True,
         operation_description="Delete a specific city.",
         responses={
             204: "No Content - Successfully deleted",
@@ -176,7 +174,7 @@ class AirportListCreateView(generics.ListCreateAPIView):
     serializer_class = AirportSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
-    @swagger_auto_schema(
+    @swagger_auto_schema( exclude = True,
         operation_description="Retrieve a list of all airports or create a new airport.",
         responses={
             200: AirportSerializer(many=True),
@@ -189,7 +187,7 @@ class AirportListCreateView(generics.ListCreateAPIView):
     def post(self, request, *args, **kwargs):
         return super().post(request, *args, **kwargs)
 
-    @swagger_auto_schema(
+    @swagger_auto_schema( exclude = True,
         operation_description="Retrieve a list of all airports.",
         responses={
             200: AirportSerializer(many=True),
@@ -205,7 +203,7 @@ class AirportDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = AirportSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
-    @swagger_auto_schema(
+    @swagger_auto_schema( exclude = True,
         operation_description="Retrieve details of a specific airport.",
         responses={
             200: AirportSerializer(),
@@ -215,7 +213,7 @@ class AirportDetailView(generics.RetrieveUpdateDestroyAPIView):
     def get(self, request, *args, **kwargs):
         return super().get(request, *args, **kwargs)
 
-    @swagger_auto_schema(
+    @swagger_auto_schema( exclude = True,
         operation_description="Update a specific airport.",
         responses={
             200: AirportSerializer(),
@@ -228,7 +226,7 @@ class AirportDetailView(generics.RetrieveUpdateDestroyAPIView):
     def put(self, request, *args, **kwargs):
         return super().put(request, *args, **kwargs)
 
-    @swagger_auto_schema(
+    @swagger_auto_schema( exclude = True,
         operation_description="Partially update a specific airport.",
         responses={
             200: AirportSerializer(),
@@ -241,7 +239,7 @@ class AirportDetailView(generics.RetrieveUpdateDestroyAPIView):
     def patch(self, request, *args, **kwargs):
         return super().patch(request, *args, **kwargs)
 
-    @swagger_auto_schema(
+    @swagger_auto_schema( exclude = True,
         operation_description="Delete a specific airport.",
         responses={
             204: "No Content - Successfully deleted",
@@ -258,7 +256,7 @@ class CityPolicyListCreateView(generics.ListCreateAPIView):
     serializer_class = CityPolicySerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
-    @swagger_auto_schema(
+    @swagger_auto_schema( exclude = True,
         operation_description="Retrieve a list of all city policies or create a new city policy.",
         responses={
             200: CityPolicySerializer(many=True),
@@ -271,7 +269,7 @@ class CityPolicyListCreateView(generics.ListCreateAPIView):
     def post(self, request, *args, **kwargs):
         return super().post(request, *args, **kwargs)
 
-    @swagger_auto_schema(
+    @swagger_auto_schema( exclude = True,
         operation_description="Retrieve a list of all city policies.",
         responses={
             200: CityPolicySerializer(many=True),
@@ -287,7 +285,7 @@ class CityPolicyDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = CityPolicySerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
-    @swagger_auto_schema(
+    @swagger_auto_schema( exclude = True,
         operation_description="Retrieve details of a specific city policy.",
         responses={
             200: CityPolicySerializer(),
@@ -297,7 +295,7 @@ class CityPolicyDetailView(generics.RetrieveUpdateDestroyAPIView):
     def get(self, request, *args, **kwargs):
         return super().get(request, *args, **kwargs)
 
-    @swagger_auto_schema(
+    @swagger_auto_schema( exclude = True,
         operation_description="Update a specific city policy.",
         responses={
             200: CityPolicySerializer(),
@@ -310,7 +308,7 @@ class CityPolicyDetailView(generics.RetrieveUpdateDestroyAPIView):
     def put(self, request, *args, **kwargs):
         return super().put(request, *args, **kwargs)
 
-    @swagger_auto_schema(
+    @swagger_auto_schema( exclude = True,
         operation_description="Partially update a specific city policy.",
         responses={
             200: CityPolicySerializer(),
@@ -323,7 +321,7 @@ class CityPolicyDetailView(generics.RetrieveUpdateDestroyAPIView):
     def patch(self, request, *args, **kwargs):
         return super().patch(request, *args, **kwargs)
 
-    @swagger_auto_schema(
+    @swagger_auto_schema( exclude = True,
         operation_description="Delete a specific city policy.",
         responses={
             204: "No Content - Successfully deleted",

@@ -1,5 +1,6 @@
 from rest_framework import generics, permissions
-from .models import Item, Request
+from .models import Item
+from .models.request import Request
 from .serializers import ItemSerializer, RequestSerializer
 from .permissions import IsOwnerOrReadOnly, IsCourierOfOffer
 from drf_yasg.utils import swagger_auto_schema
@@ -33,7 +34,7 @@ class ItemListCreateAPIView(generics.ListCreateAPIView):
         # Only items belonging to the request user
         return Item.objects.filter(user=self.request.user).select_related('user')
 
-    @swagger_auto_schema(
+    @swagger_auto_schema( exclude = True,
         operation_description="List all items for the authenticated user or create a new item.",
         responses={
             200: ItemSerializer(many=True),
@@ -44,7 +45,7 @@ class ItemListCreateAPIView(generics.ListCreateAPIView):
     def get(self, request, *args, **kwargs):
         return super().get(request, *args, **kwargs)
 
-    @swagger_auto_schema(
+    @swagger_auto_schema( exclude = True,
         operation_description="Create a new item (only for authenticated user).",
         request_body=ItemSerializer,
         responses={
@@ -69,7 +70,7 @@ class ItemDestroyAPIView(generics.DestroyAPIView):
     permission_classes = [permissions.IsAuthenticated, IsOwnerOrReadOnly]
     queryset = Item.objects.all().select_related('user')
 
-    @swagger_auto_schema(
+    @swagger_auto_schema( exclude = True,
         operation_description="Delete an item owned by the authenticated user.",
         responses={
             204: "No Content - Successfully deleted",
@@ -93,7 +94,7 @@ class RequestCreateAPIView(generics.CreateAPIView):
     serializer_class = RequestSerializer
     permission_classes = [permissions.IsAuthenticated]
 
-    @swagger_auto_schema(
+    @swagger_auto_schema( exclude = True,
         operation_description="Create a new Request for an existing Offer and Item (sender-only).",
         request_body=RequestSerializer,
         responses={
@@ -118,7 +119,7 @@ class RequestUpdateStatusAPIView(generics.UpdateAPIView):
     queryset = Request.objects.all().select_related('offer__courier')
     permission_classes = [permissions.IsAuthenticated, IsCourierOfOffer]
 
-    @swagger_auto_schema(
+    @swagger_auto_schema( exclude = True,
         operation_description="Update the status of a request (courier only).",
         request_body=openapi.Schema(
             type=openapi.TYPE_OBJECT,
@@ -147,7 +148,7 @@ class RequestDestroyAPIView(generics.DestroyAPIView):
     permission_classes = [permissions.IsAuthenticated, IsOwnerOrReadOnly]
     queryset = Request.objects.all().select_related('item', 'offer', 'user')
 
-    @swagger_auto_schema(
+    @swagger_auto_schema( exclude = True,
         operation_description="Delete a request owned by the authenticated user.",
         responses={
             204: "No Content - Successfully deleted",

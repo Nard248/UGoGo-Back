@@ -4,7 +4,8 @@ from decimal import Decimal
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase, APIClient, APIRequestFactory
-from .models import Item, Request
+from .models import Item
+from .models.request import Request
 from offers.models import Flight, UserFlight, Offer
 from users.models import Users
 from locations.models import Country, City, Airport

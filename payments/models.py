@@ -1,7 +1,7 @@
 from django.db import models
 from users.models import Users
 from offers.models import Offer
-from items.models import Item
+from items.models.items import Item
 
 class Payment(models.Model):
     status = models.CharField(max_length=255)

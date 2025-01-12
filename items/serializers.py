@@ -1,9 +1,10 @@
-# items/serializers.py
+
 
 from rest_framework import serializers
 from offers.models import Offer
-from .models import Item, Request
-from offers.serializers import OfferSerializer
+from .models import Item
+from .models.request import Request
+from offers.serializer.offer_serializer import OfferSerializer
 from users.serializers import CustomUserSerializer
 from decimal import Decimal
 

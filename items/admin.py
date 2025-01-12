@@ -1,7 +1,9 @@
 # items/admin.py
 
 from django.contrib import admin
-from .models import Item, Request
+from .models.items import Item
+from .models.request import Request
+
 
 @admin.register(Item)
 class ItemAdmin(admin.ModelAdmin):

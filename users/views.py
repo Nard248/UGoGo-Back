@@ -10,6 +10,7 @@ from .models import Users
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import serializers
 
+from .swagger_schemas.login_schema import login_schema
 
 
 class RegisterUserView(APIView):
@@ -17,8 +18,8 @@ class RegisterUserView(APIView):
     Endpoint for registering a new user.
     """
     permission_classes = [AllowAny]
-
-    @swagger_auto_schema(
+    #
+    @swagger_auto_schema( exclude = True,
         operation_description="Register a new user.",
         request_body=RegisterUserSerializer,
         responses={
@@ -60,10 +61,9 @@ class CustomTokenObtainPairView(TokenObtainPairView):
     Custom view to handle login and JWT token issuance.
     """
     serializer_class = CustomTokenObtainPairSerializer
-
-    @swagger_auto_schema(
+    @swagger_auto_schema( exclude = True,
         operation_description="Obtain access and refresh tokens by providing valid credentials.",
-        request_body=TokenObtainPairSerializer,
+        request_body=login_schema,
         responses={
             200: "Access and refresh tokens issued successfully.",
             401: "Unauthorized - Invalid credentials",
@@ -85,7 +85,7 @@ class LogOutView(APIView):
     # Allow any user to access this endpoint
     permission_classes = [AllowAny]
 
-    @swagger_auto_schema(
+    @swagger_auto_schema( exclude = True,
         operation_description="Log out the user by blacklisting the given refresh token.",
         request_body=LogOutSerializer,
         responses={
