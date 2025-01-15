@@ -1,12 +1,16 @@
-from rest_framework import generics, permissions
-from .models import Item
-from .models.request import Request
-from .serializers import ItemSerializer, RequestSerializer
-from .permissions import IsOwnerOrReadOnly, IsCourierOfOffer
+from rest_framework import generics, permissions, status
+from rest_framework.response import Response
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
-from rest_framework.response import Response
-from rest_framework import status
+
+from items.models.items import Item, ItemPicture
+from items.models.request import Request
+from items.serializers import (
+    ItemSerializer,
+    RequestSerializer,
+    UnifiedItemSerializer
+)
+from items.permissions import IsOwnerOrReadOnly, IsCourierOfOffer
 from rest_framework.pagination import PageNumberPagination
 
 
@@ -16,149 +20,122 @@ class StandardResultsSetPagination(PageNumberPagination):
     max_page_size = 100
 
 
-#
-# -------------------- ITEM VIEWS --------------------
-#
-
+# ---------------------- Item Views ----------------------
 class ItemListCreateAPIView(generics.ListCreateAPIView):
     """
-    GET (authenticated only): List all items of the user
-    POST: Create a new item (owned by the request user)
+    GET: List user's own items
+    POST: Create a new item (owned by the request.user)
     """
     serializer_class = ItemSerializer
-    # Force authentication for BOTH list and create
     permission_classes = [permissions.IsAuthenticated]
     pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
-        # Only items belonging to the request user
-        return Item.objects.filter(user=self.request.user).select_related('user')
+        return Item.objects.filter(user=self.request.user).prefetch_related('categories', 'pictures')
 
-    @swagger_auto_schema( exclude = True,
-        operation_description="List all items for the authenticated user or create a new item.",
-        responses={
-            200: ItemSerializer(many=True),
-            201: ItemSerializer(),
-            401: "Unauthorized",
-        }
-    )
+    @swagger_auto_schema(operation_description="List all items belonging to the current user.")
     def get(self, request, *args, **kwargs):
         return super().get(request, *args, **kwargs)
 
-    @swagger_auto_schema( exclude = True,
-        operation_description="Create a new item (only for authenticated user).",
-        request_body=ItemSerializer,
-        responses={
-            201: ItemSerializer(),
-            400: "Bad Request",
-            401: "Unauthorized",
-        }
-    )
+    @swagger_auto_schema(operation_description="Create a new item for the current user.")
     def post(self, request, *args, **kwargs):
         return super().post(request, *args, **kwargs)
-
-    def perform_create(self, serializer):
-        # Assign the logged-in user as the owner
-        serializer.save(user=self.request.user)
 
 
 class ItemDestroyAPIView(generics.DestroyAPIView):
     """
-    DELETE: Delete an item (owner only).
+    DELETE: Remove an item (only if you're the owner).
     """
     serializer_class = ItemSerializer
     permission_classes = [permissions.IsAuthenticated, IsOwnerOrReadOnly]
-    queryset = Item.objects.all().select_related('user')
+    queryset = Item.objects.all().prefetch_related('categories', 'pictures')
 
-    @swagger_auto_schema( exclude = True,
-        operation_description="Delete an item owned by the authenticated user.",
-        responses={
-            204: "No Content - Successfully deleted",
-            401: "Unauthorized",
-            403: "Forbidden",
-            404: "Not Found",
-        }
-    )
+    @swagger_auto_schema(operation_description="Delete an existing item by ID.")
     def delete(self, request, *args, **kwargs):
         return super().delete(request, *args, **kwargs)
 
 
-#
-# -------------------- REQUEST VIEWS --------------------
-#
-
-class RequestCreateAPIView(generics.CreateAPIView):
+# ---------------------- Request Views ----------------------
+class RequestListCreateAPIView(generics.ListCreateAPIView):
     """
-    POST: Create a new request to transport an item via a flight offer.
+    GET: List all requests (optionally filter by user or item)
+    POST: Create a new request for an existing item & offer.
     """
     serializer_class = RequestSerializer
     permission_classes = [permissions.IsAuthenticated]
+    pagination_class = StandardResultsSetPagination
 
-    @swagger_auto_schema( exclude = True,
-        operation_description="Create a new Request for an existing Offer and Item (sender-only).",
-        request_body=RequestSerializer,
-        responses={
-            201: RequestSerializer(),
-            400: "Bad Request - Invalid data",
-            401: "Unauthorized",
-        }
-    )
+    def get_queryset(self):
+        qs = Request.objects.select_related('item', 'offer', 'user', 'offer__courier')
+        item_id = self.request.query_params.get('item_id')
+        user_id = self.request.query_params.get('user_id')
+        if item_id:
+            qs = qs.filter(item_id=item_id)
+        if user_id:
+            qs = qs.filter(user_id=user_id)
+        return qs
+
+    @swagger_auto_schema(operation_description="List all requests. Can filter by user_id & item_id.")
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
+
+    @swagger_auto_schema(operation_description="Create a new request. The user must own the item.")
     def post(self, request, *args, **kwargs):
         return super().post(request, *args, **kwargs)
-
-    def perform_create(self, serializer):
-        # Make sure user is set on Request to avoid null user_id
-        serializer.save(user=self.request.user)
 
 
 class RequestUpdateStatusAPIView(generics.UpdateAPIView):
     """
-    PATCH: Update the status of a request (only by the courier).
+    PATCH: Update the status of a request (only the courier of the Offer can do this).
     """
     serializer_class = RequestSerializer
-    queryset = Request.objects.all().select_related('offer__courier')
     permission_classes = [permissions.IsAuthenticated, IsCourierOfOffer]
+    queryset = Request.objects.select_related('item', 'offer', 'user', 'offer__courier')
 
-    @swagger_auto_schema( exclude = True,
-        operation_description="Update the status of a request (courier only).",
-        request_body=openapi.Schema(
-            type=openapi.TYPE_OBJECT,
-            properties={
-                'status': openapi.Schema(type=openapi.TYPE_STRING)
-            },
-            required=['status']
-        ),
-        responses={
-            200: RequestSerializer(),
-            400: "Bad Request",
-            401: "Unauthorized",
-            403: "Forbidden - Not the courier",
-            404: "Not Found",
-        }
-    )
+    @swagger_auto_schema(operation_description="Update the status of a request (courier only).")
     def patch(self, request, *args, **kwargs):
         return super().patch(request, *args, **kwargs)
 
 
 class RequestDestroyAPIView(generics.DestroyAPIView):
     """
-    DELETE: Delete a request owned by the authenticated user.
+    DELETE: A request can be deleted by the user who created it.
     """
     serializer_class = RequestSerializer
     permission_classes = [permissions.IsAuthenticated, IsOwnerOrReadOnly]
-    queryset = Request.objects.all().select_related('item', 'offer', 'user')
+    queryset = Request.objects.select_related('item', 'offer', 'user', 'offer__courier')
 
-    @swagger_auto_schema( exclude = True,
-        operation_description="Delete a request owned by the authenticated user.",
-        responses={
-            204: "No Content - Successfully deleted",
-            401: "Unauthorized",
-            403: "Forbidden",
-            404: "Not Found",
-        }
-    )
+    @swagger_auto_schema(operation_description="Delete a request you own.")
     def delete(self, request, *args, **kwargs):
         return super().delete(request, *args, **kwargs)
 
 
-#TODO Implement Get For Requests
+# ---------------------- Unified Creation Endpoint ----------------------
+class UnifiedItemCreateView(generics.GenericAPIView):
+    """
+    Single endpoint to create Item, pictures, categories, pickup info, etc.
+    """
+    serializer_class = UnifiedItemSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    @swagger_auto_schema(
+        operation_description="Create an item, pictures, categories, etc. in a single request.",
+        request_body=UnifiedItemSerializer,
+        responses={
+            201: "Created the Item successfully.",
+            400: "Invalid data",
+            401: "Unauthorized"
+        }
+    )
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            item = serializer.save()
+            return Response(
+                {
+                    "message": "Item created successfully!",
+                    "item_id": item.id
+                },
+                status=status.HTTP_201_CREATED
+            )
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
