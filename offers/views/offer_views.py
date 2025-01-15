@@ -9,56 +9,36 @@ from rest_framework.views import APIView
 from offers.models import Offer
 from offers.serializer.flight_serializer import FlightSerializer
 from offers.serializer.offer_serializer import OfferCreateSerializer, OfferSerializer
+from offers.serializer.offer_unified_serializer import UnifiedOfferCreationSerializer
 from offers.serializer.user_flight_serializer import UserFlightSerializer
 from offers.swagger_schemas.offer_creation_schema import offer_creation_body_schema
 from offers.views.pegination_view import StandardResultsSetPagination
 
 
 class CreateOfferAPIView(APIView):
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    permission_classes = [permissions.IsAuthenticated]
 
-    @swagger_auto_schema(exclude=True,
-                         operation_description="Create a new offer.",
-                         request_body=offer_creation_body_schema,
-                         responses={
-                             200: "The offer was created successfully.",
-                             400: "Bad Request - Invalid data",
-                             404: "Not Found",
-                             401: "Unauthorized",
-                         }
-                         )
-    def post(self, request):
-
-        flight_data = request.data.pop("flight_data", None)
-        if not flight_data or not isinstance(flight_data, dict):
-            return Response({"error": "Flight data is required."}, status=status.HTTP_400_BAD_REQUEST)
-
-        flight_serializer = FlightSerializer(data=flight_data, context={"request": request})
-        if flight_serializer.is_valid():
-            new_flight = flight_serializer.save()
-        else:
-            return Response(
-                {"error": "Flight creation failed. Not vaild data", "detailed error": flight_serializer.errors},
-                status=status.HTTP_400_BAD_REQUEST)
-
-        if not new_flight.id:
-            return Response({"error": "Flight creation failed."}, status=status.HTTP_400_BAD_REQUEST)
-
-        user_serializer = UserFlightSerializer(data={"flight_id": new_flight.id}, context={"request": request})
-        if user_serializer.is_valid():
-            new_user_flight = user_serializer.save()
-        else:
-            return Response({"error": "User Flight creation failed."}, status=status.HTTP_400_BAD_REQUEST)
-
-        offer_data = request.data
-        offer_data["user_flight_id"] = new_user_flight.id
-
-        serializer = OfferCreateSerializer(data=offer_data, context={"request": request})
+    @swagger_auto_schema(
+        operation_description="Create a new flight + user_flight + offer in one request, including multiple categories.",
+        request_body=UnifiedOfferCreationSerializer,
+        responses={
+            201: "Offer created successfully.",
+            400: "Bad Request - Invalid data",
+            401: "Unauthorized",
+        }
+    )
+    def post(self, request, *args, **kwargs):
+        serializer = UnifiedOfferCreationSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
-            serializer.save()
-            return Response({"message": "The offer was successfully created."}, status=status.HTTP_201_CREATED)
-        else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            offer = serializer.save()
+            return Response(
+                {
+                    "message": "The offer was successfully created.",
+                    "offer_id": offer.id
+                },
+                status=status.HTTP_201_CREATED
+            )
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class OfferDetailAPIView(APIView):
