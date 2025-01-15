@@ -11,7 +11,7 @@ from .pegination_view import StandardResultsSetPagination
 from ..models import Flight
 from ..models import Offer
 from ..serializer.flight_serializer import FlightSerializer
-from ..serializer.offer_serializer import OfferSerializer
+from ..serializer.offer_serializer import OfferCreateSerializer
 
 
 class FlightListCreateAPIView(generics.ListCreateAPIView):
@@ -108,7 +108,7 @@ class FlightDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
 
 
 class FlightSearchAPIView(generics.ListAPIView):
-    serializer_class = OfferSerializer
+    serializer_class = OfferCreateSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     pagination_class = StandardResultsSetPagination
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
@@ -145,7 +145,7 @@ class FlightSearchAPIView(generics.ListAPIView):
                               type=openapi.TYPE_STRING),
         ],
         responses={
-            200: OfferSerializer(many=True),
+            200: OfferCreateSerializer(many=True),
             400: "Bad Request - Invalid query parameters",
             401: "Unauthorized",
         }

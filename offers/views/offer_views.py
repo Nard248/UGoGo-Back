@@ -8,7 +8,7 @@ from rest_framework.views import APIView
 
 from offers.models import Offer
 from offers.serializer.flight_serializer import FlightSerializer
-from offers.serializer.offer_serializer import OfferSerializer
+from offers.serializer.offer_serializer import OfferCreateSerializer, OfferSerializer
 from offers.serializer.user_flight_serializer import UserFlightSerializer
 from offers.swagger_schemas.offer_creation_schema import offer_creation_body_schema
 from offers.views.pegination_view import StandardResultsSetPagination
@@ -52,9 +52,8 @@ class CreateOfferAPIView(APIView):
 
         offer_data = request.data
         offer_data["user_flight_id"] = new_user_flight.id
-        print(offer_data)
 
-        serializer = OfferSerializer(data=offer_data, context={"request": request})
+        serializer = OfferCreateSerializer(data=offer_data, context={"request": request})
         if serializer.is_valid():
             serializer.save()
             return Response({"message": "The offer was successfully created."}, status=status.HTTP_201_CREATED)
@@ -62,27 +61,40 @@ class CreateOfferAPIView(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class OfferDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
+class OfferDetailAPIView(APIView):
     queryset = Offer.objects.all()
-    serializer_class = OfferSerializer
+    serializer_class = OfferCreateSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
-    @swagger_auto_schema(exclude=True,
+    @swagger_auto_schema(
+                         exclude=True,
                          operation_description="Retrieve detailed information about a specific flight offer.",
                          responses={
-                             200: OfferSerializer(),
+                             200: OfferCreateSerializer(),
                              404: "Not Found",
                              401: "Unauthorized",
                          }
                          )
-    def get(self, request, *args, **kwargs):
-        return super().get(request, *args, **kwargs)
+    def get(self, request, pk, *args, **kwargs):
+        if not isinstance(pk, int):
+            return Response(
+                {"error": "Invalid ID. 'pk' must be an integer."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            offer = Offer.objects.select_related("user_flight__user", "user_flight__flight").get(pk=pk)
+            offer_serializer = OfferSerializer(offer, context={"request": request})
+            return Response({"offer": offer_serializer}, status=status.HTTP_200_OK)
+        except Offer.DoesNotExist:
+            return Response({"error": "Offer not found."}, status=404)
+
 
     @swagger_auto_schema(exclude=True,
                          operation_description="Update a specific flight offer.",
-                         request_body=OfferSerializer,
+                         request_body=OfferCreateSerializer,
                          responses={
-                             200: OfferSerializer(),
+                             200: OfferCreateSerializer(),
                              400: "Bad Request - Invalid data",
                              404: "Not Found",
                              401: "Unauthorized",
@@ -93,9 +105,9 @@ class OfferDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
 
     @swagger_auto_schema(exclude=True,
                          operation_description="Partially update a specific flight offer.",
-                         request_body=OfferSerializer,
+                         request_body=OfferCreateSerializer,
                          responses={
-                             200: OfferSerializer(),
+                             200: OfferCreateSerializer(),
                              400: "Bad Request - Invalid data",
                              404: "Not Found",
                              401: "Unauthorized",
@@ -118,13 +130,13 @@ class OfferDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
 
 class OfferListCreateAPIView(generics.ListCreateAPIView):
     queryset = Offer.objects.all().order_by('price')
-    serializer_class = OfferSerializer
+    serializer_class = OfferCreateSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     pagination_class = StandardResultsSetPagination
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
     filterset_fields = ['status', 'courier__email', 'user_flight__user__email']
     ordering_fields = ['price', 'available_weight', 'available_space']
-    ordering = ['price']  # Default ordering
+    ordering = ['price']
 
     @swagger_auto_schema(exclude=True,
                          operation_description="Retrieve a paginated list of all offers or create a new offer.",
@@ -138,8 +150,8 @@ class OfferListCreateAPIView(generics.ListCreateAPIView):
                                                type=openapi.TYPE_STRING),
                          ],
                          responses={
-                             200: OfferSerializer(many=True),
-                             201: OfferSerializer(),
+                             200: OfferCreateSerializer(many=True),
+                             201: OfferCreateSerializer(),
                              400: "Bad Request - Invalid data",
                              401: "Unauthorized",
                          }
@@ -150,7 +162,7 @@ class OfferListCreateAPIView(generics.ListCreateAPIView):
     @swagger_auto_schema(exclude=True,
                          operation_description="Retrieve a paginated list of all offers.",
                          responses={
-                             200: OfferSerializer(many=True),
+                             200: OfferCreateSerializer(many=True),
                              401: "Unauthorized",
                          }
                          )

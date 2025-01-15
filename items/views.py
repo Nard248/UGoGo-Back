@@ -12,6 +12,7 @@ from items.serializers import (
 )
 from items.permissions import IsOwnerOrReadOnly, IsCourierOfOffer
 from rest_framework.pagination import PageNumberPagination
+from items.swagger_schemas.unified_item_schema import item_creation_body_schema
 
 
 class StandardResultsSetPagination(PageNumberPagination):
@@ -120,7 +121,7 @@ class UnifiedItemCreateView(generics.GenericAPIView):
 
     @swagger_auto_schema(
         operation_description="Create an item, pictures, categories, etc. in a single request.",
-        request_body=UnifiedItemSerializer,
+        request_body=item_creation_body_schema,
         responses={
             201: "Created the Item successfully.",
             400: "Invalid data",

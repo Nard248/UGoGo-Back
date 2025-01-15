@@ -5,7 +5,7 @@ from decimal import Decimal
 from items.models.items import Item, ItemCategory, ItemPicture
 from items.models.request import Request
 from offers.models import Offer
-from offers.serializer.offer_serializer import OfferSerializer
+from offers.serializer.offer_serializer import OfferCreateSerializer
 from users.serializers import CustomUserSerializer
 
 
@@ -94,7 +94,7 @@ class RequestSerializer(serializers.ModelSerializer):
         source='item',
         write_only=True
     )
-    offer = OfferSerializer(read_only=True)
+    offer = OfferCreateSerializer(read_only=True)
     offer_id = serializers.PrimaryKeyRelatedField(
         queryset=Offer.objects.filter(status='available'),
         source='offer',

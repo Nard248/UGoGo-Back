@@ -27,24 +27,22 @@ class Item(models.Model):
         on_delete=models.CASCADE
     )
     name = models.CharField(max_length=255)
-    description = models.TextField(blank=True, null=True)  # optional
+    description = models.TextField(blank=True, null=True)
     weight = models.DecimalField(max_digits=10, decimal_places=2)
-    dimensions = models.CharField(max_length=100)  # e.g., "15x10x2"
-    verified = models.BooleanField(default=False)  # can be changed by admin or left open
+    dimensions = models.CharField(max_length=100)
+    verified = models.BooleanField(default=False)
     state = models.CharField(
         max_length=20,
         choices=STATE_CHOICES,
         default='draft'
     )
 
-    # M2M with categories (instead of a single FK)
     categories = models.ManyToManyField(
         'ItemCategory',
         related_name='items',
         blank=True
     )
 
-    # Pick-up Person Info
     pickup_name = models.CharField(max_length=100, blank=True, null=True)
     pickup_surname = models.CharField(max_length=100, blank=True, null=True)
     pickup_phone = models.CharField(max_length=50, blank=True, null=True)
