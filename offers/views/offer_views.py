@@ -64,8 +64,8 @@ class OfferDetailAPIView(APIView):
 
         try:
             offer = Offer.objects.select_related("user_flight__user", "user_flight__flight").get(pk=pk)
-            offer_serializer = OfferSerializer(offer, context={"request": request})
-            return Response({"offer": offer_serializer}, status=status.HTTP_200_OK)
+            offer_data = OfferSerializer(offer, context={"request": request}).data
+            return Response({"offer": offer_data}, status=status.HTTP_200_OK)
         except Offer.DoesNotExist:
             return Response({"error": "Offer not found."}, status=404)
 
