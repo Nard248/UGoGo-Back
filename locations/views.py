@@ -1,14 +1,22 @@
 from rest_framework import generics, permissions
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
+from rest_framework.pagination import PageNumberPagination
+
 from .models import Country, City, Airport, CityPolicy
 from .serializers import CountrySerializer, CitySerializer, AirportSerializer, CityPolicySerializer
 
+
+class StandardResultsSetPagination(PageNumberPagination):
+    page_size = 1
+    page_size_query_param = 'page_size'
+    max_page_size = 100
 
 class CountryListCreateView(generics.ListCreateAPIView):
     queryset = Country.objects.all()
     serializer_class = CountrySerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    pagination_class = StandardResultsSetPagination
 
     @swagger_auto_schema( exclude = True,
         operation_description="Retrieve a list of all countries or create a new country.",
