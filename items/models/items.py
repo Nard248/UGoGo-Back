@@ -4,6 +4,7 @@ from django.conf import settings
 
 class ItemCategory(models.Model):
     name = models.CharField(max_length=255)
+    icon_path = models.CharField(max_length=255, null=False, default='default_icon.svg')
     description = models.TextField()
 
     def __str__(self):
