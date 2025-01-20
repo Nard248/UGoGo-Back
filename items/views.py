@@ -2,8 +2,9 @@ from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
+from rest_framework.views import APIView
 
-from items.models.items import Item, ItemPicture
+from items.models.items import Item, ItemPicture, ItemCategory
 from items.models.request import Request
 from items.serializers import (
     ItemSerializer,
@@ -13,6 +14,7 @@ from items.serializers import (
 from items.permissions import IsOwnerOrReadOnly, IsCourierOfOffer
 from rest_framework.pagination import PageNumberPagination
 from items.swagger_schemas.unified_item_schema import item_creation_body_schema
+
 
 
 class StandardResultsSetPagination(PageNumberPagination):
@@ -140,3 +142,18 @@ class UnifiedItemCreateView(generics.GenericAPIView):
                 status=status.HTTP_201_CREATED
             )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class GetAllCategoriesView(APIView):
+    operation_description="Retrieve a list of all available categories."
+
+    @swagger_auto_schema(
+        operation_description="Retrieve all available categories.",
+        responses={
+            200: "Returned the list of categories successfully.",
+            400: "Bad request: Invalid query or parameters.",
+            401: "Unauthorized: Authentication credentials are required."
+        }
+    )
+    def get(self, request, *args, **kwargs):
+        all_categories = ItemCategory.objects.all()
+        return Response(all_categories.values(), status=status.HTTP_200_OK)

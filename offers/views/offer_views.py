@@ -7,11 +7,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from offers.models import Offer
-from offers.serializer.flight_serializer import FlightSerializer
 from offers.serializer.offer_serializer import OfferCreateSerializer, OfferSerializer
 from offers.serializer.offer_unified_serializer import UnifiedOfferCreationSerializer
-from offers.serializer.user_flight_serializer import UserFlightSerializer
-from offers.swagger_schemas.offer_creation_schema import offer_creation_body_schema
 from offers.views.pegination_view import StandardResultsSetPagination
 
 
@@ -47,14 +44,14 @@ class OfferDetailAPIView(APIView):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
     @swagger_auto_schema(
-                         exclude=True,
-                         operation_description="Retrieve detailed information about a specific flight offer.",
-                         responses={
-                             200: OfferCreateSerializer(),
-                             404: "Not Found",
-                             401: "Unauthorized",
-                         }
-                         )
+        exclude=True,
+        operation_description="Retrieve detailed information about a specific flight offer.",
+        responses={
+            200: OfferCreateSerializer(),
+            404: "Not Found",
+            401: "Unauthorized",
+        }
+    )
     def get(self, request, pk, *args, **kwargs):
         if not isinstance(pk, int):
             return Response(
@@ -68,7 +65,6 @@ class OfferDetailAPIView(APIView):
             return Response({"offer": offer_data}, status=status.HTTP_200_OK)
         except Offer.DoesNotExist:
             return Response({"error": "Offer not found."}, status=404)
-
 
     @swagger_auto_schema(exclude=True,
                          operation_description="Update a specific flight offer.",

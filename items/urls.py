@@ -5,7 +5,7 @@ from items.views import (
     RequestListCreateAPIView,
     RequestUpdateStatusAPIView,
     RequestDestroyAPIView,
-    UnifiedItemCreateView
+    UnifiedItemCreateView, GetAllCategoriesView
 )
 
 urlpatterns = [
@@ -20,4 +20,5 @@ urlpatterns = [
 
     # Unified creation
     path('items/unified_create/', UnifiedItemCreateView.as_view(), name='unified-create-item'),
+    path('get_all_categories', GetAllCategoriesView.as_view(), name='get-all-categories'),
 ]
