@@ -30,7 +30,7 @@ class Users(AbstractBaseUser, PermissionsMixin):
     objects = CustomUserManager()
 
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['first_name', 'last_name']
+    REQUIRED_FIELDS = ['full_name']
 
     class Meta:
         db_table = "users"  # Ensure table name matches
