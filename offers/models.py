@@ -46,6 +46,8 @@ class Offer(models.Model):
     courier = models.ForeignKey(Users, related_name='courier_offers', on_delete=models.CASCADE)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='available')
     price = models.DecimalField(max_digits=10, decimal_places=2)
+    allow_fragile = models.BooleanField(default=False)
+    available_dimensions = models.CharField(max_length=50, default='0x0x0')
     available_weight = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     available_space = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     category = models.ForeignKey(ItemCategory, on_delete=models.CASCADE, null=True, blank=True)
