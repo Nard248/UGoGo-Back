@@ -50,7 +50,7 @@ class Offer(models.Model):
     available_dimensions = models.CharField(max_length=50, default='0x0x0')
     available_weight = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     available_space = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-    category = models.ForeignKey(ItemCategory, on_delete=models.CASCADE, null=True, blank=True)
+    categories = models.ManyToManyField(ItemCategory, related_name='offers', blank=True)
     notes = models.TextField(blank=True, null=True)
 
 

@@ -118,9 +118,7 @@ class UnifiedOfferCreationSerializer(serializers.Serializer):
         }
 
         offer_obj = Offer.objects.create(**offer_data)
-        # Now set categories M2M
         if category_ids:
-            cat_qs = ItemCategory.objects.filter(pk__in=category_ids)
-            offer_obj.categories.set(cat_qs)
+            offer_obj.categories.set(ItemCategory.objects.filter(pk__in=category_ids))
 
         return offer_obj
