@@ -1,65 +1,47 @@
+from django.db.utils import UserEmailVerificationService
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import AllowAny
 from rest_framework_simplejwt.views import TokenObtainPairView
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from .serializers import RegisterUserSerializer, CustomUserSerializer
+from .serializers import RegisterUserSerializer, CustomUserSerializer, CustomTokenObtainPairSerializer, \
+    LogOutSerializer, PasswordResetSerializer, EmailVerificationSerializer
 from .models import Users
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import serializers
+from django.utils import timezone
+
+
 
 from .swagger_schemas.login_schema import login_schema
+from .utils import send_verification_email
 
 
 class RegisterUserView(APIView):
-    """
-    Endpoint for registering a new user.
-    """
     permission_classes = [AllowAny]
-    #
-    @swagger_auto_schema( exclude = True,
-        operation_description="Register a new user.",
-        request_body=RegisterUserSerializer,
-        responses={
-            201: "User registered successfully.",
-            400: "Bad request - Validation error",
-        }
-    )
+
+    @swagger_auto_schema(exclude=True,
+                         operation_description="Register a new user.",
+                         request_body=RegisterUserSerializer,
+                         responses={
+                             201: "User registered successfully.",
+                             400: "Bad request - Validation error",
+                         }
+                         )
     def post(self, request):
         serializer = RegisterUserSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
-            refresh = RefreshToken.for_user(user)
+            user.is_active = False
+            user.save()
+
+            send_verification_email(user)
             return Response({
-                "message": "User registered successfully.",
+                "message": "User registered successfully. Please check your email to verify your account.",
                 "user": CustomUserSerializer(user).data,
-                "tokens": {
-                    "refresh": str(refresh),
-                    "access": str(refresh.access_token),
-                }
             }, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
-    """
-    Custom serializer for token pair (access and refresh tokens).
-    """
-    def validate(self, attrs):
-        data = super().validate(attrs)
-        user = self.user
-
-        # Add additional user info to the response
-        data["user"] = {
-            "id": user.id,
-            "email": user.email,
-            "first_name": user.first_name,
-            "last_name": user.last_name,
-            "full_name": user.full_name,
-        }
-        return data
 
 
 class CustomTokenObtainPairView(TokenObtainPairView):
@@ -67,22 +49,25 @@ class CustomTokenObtainPairView(TokenObtainPairView):
     Custom view to handle login and JWT token issuance.
     """
     serializer_class = CustomTokenObtainPairSerializer
-    @swagger_auto_schema( exclude = True,
-        operation_description="Obtain access and refresh tokens by providing valid credentials.",
-        request_body=login_schema,
-        responses={
-            200: "Access and refresh tokens issued successfully.",
-            401: "Unauthorized - Invalid credentials",
-        }
-    )
+
+    @swagger_auto_schema(exclude=True,
+                         operation_description="Obtain access and refresh tokens by providing valid credentials.",
+                         request_body=login_schema,
+                         responses={
+                             200: "Access and refresh tokens issued successfully.",
+                             400: "Bad request - Email was not verified or user account is not active.",
+                             401: "Unauthorized - Invalid credentials",
+                         }
+                         )
     def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        try:
+            serializer.is_valid(raise_exception=True)
+        except serializers.ValidationError as e:
+            return Response(e.detail, status=status.HTTP_400_BAD_REQUEST)
+
         return super().post(request, *args, **kwargs)
 
-class LogOutSerializer(serializers.Serializer):
-    """
-    Serializer for the Logout request body.
-    """
-    refresh = serializers.CharField(help_text="The refresh token to be blacklisted.")
 
 class LogOutView(APIView):
     """
@@ -91,14 +76,14 @@ class LogOutView(APIView):
     # Allow any user to access this endpoint
     permission_classes = [AllowAny]
 
-    @swagger_auto_schema( exclude = True,
-        operation_description="Log out the user by blacklisting the given refresh token.",
-        request_body=LogOutSerializer,
-        responses={
-            200: "Successfully logged out.",
-            400: "Invalid refresh token or failed to blacklist.",
-        }
-    )
+    @swagger_auto_schema(exclude=True,
+                         operation_description="Log out the user by blacklisting the given refresh token.",
+                         request_body=LogOutSerializer,
+                         responses={
+                             200: "Successfully logged out.",
+                             400: "Invalid refresh token or failed to blacklist.",
+                         }
+                         )
     def post(self, request):
         try:
             # Parse the refresh token from the request body
@@ -114,3 +99,65 @@ class LogOutView(APIView):
         except Exception as e:
             return Response({"error": "Invalid refresh token or failed to blacklist."},
                             status=status.HTTP_400_BAD_REQUEST)
+
+
+
+
+class VerifyEmailView(APIView):
+    permission_classes = [AllowAny]
+    serializer_class = EmailVerificationSerializer
+    @swagger_auto_schema(exclude=True,
+                         operation_description="Verify the user's email with the provided verification code.",
+                         request_body=EmailVerificationSerializer,
+                         responses={
+                             201: "Verification code was correct, account is active now",
+                             400: "Bad request - Validation error",
+                             404: "User with this email does not exist",
+                             422: "Invalid verification code or verification code has expired",
+                         }
+                         )
+    def post(self, request):
+        serializer = self.get_serializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        email_verification_code = request.data.get('email_verification_code')
+        email = request.data.get('email')
+
+        if not email_verification_code or not email:
+            return Response({"error": "Email and verification code are required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            user = Users.objects.get(email=email)
+        except Users.DoesNotExist:
+            return Response({"error": "User with this email does not exist."}, status=status.HTTP_404_NOT_FOUND)
+
+        if user.email_verification_code != email_verification_code:
+            return Response({"error": "Invalid verification code."}, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+
+        if timezone.now() > user.code_expiration:
+            return Response({"error": "Verification code has expired."}, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+
+        user.is_email_verified = True
+        user.is_active = True
+        user.save()
+
+        return Response({"message": "Email verified successfully."}, status=status.HTTP_201_CREATED)
+
+class ForgotPasswordView(APIView):
+    permission_classes = [AllowAny]
+
+    @swagger_auto_schema(exclude=True,
+                         operation_description="Request a password reset link.",
+                         request_body=PasswordResetSerializer,
+                         responses={
+                             200: "Password reset link sent successfully.",
+                             400: "Bad request - Validation error",
+                         }
+                         )
+    def post(self, request):
+        serializer = PasswordResetSerializer(data=request.data, context={'request': request})
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"message": "Password reset link sent successfully."}, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

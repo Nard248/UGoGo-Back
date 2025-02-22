@@ -1,3 +1,6 @@
+from datetime import datetime, timedelta
+from random import randint
+
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.db import models
 
@@ -27,6 +30,12 @@ class Users(AbstractBaseUser, PermissionsMixin):
     is_staff = models.BooleanField(default=False, null=True)
     date_joined = models.DateTimeField(auto_now_add=True)
 
+    ### email verification
+    is_email_verified = models.BooleanField(default=False)
+    email_verification_code = models.CharField(max_length=6, blank=True, null=True)
+    code_expiration = models.DateTimeField(blank=True, null=True)
+
+
     objects = CustomUserManager()
 
     USERNAME_FIELD = 'email'
@@ -34,6 +43,11 @@ class Users(AbstractBaseUser, PermissionsMixin):
 
     class Meta:
         db_table = "users"  # Ensure table name matches
+
+    def generate_verification_code(self):
+        self.email_verification_code = str(randint(100000, 999999))  # 6-digit code
+        self.code_expiration = datetime.now() + timedelta(minutes=10)
+        self.save()
 
 
 class PID(models.Model):

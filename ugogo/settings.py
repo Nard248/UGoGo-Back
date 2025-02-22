@@ -1,5 +1,11 @@
+import os
 from datetime import timedelta
 from pathlib import Path
+
+import certifi
+
+os.environ['SSL_CERT_FILE'] = certifi.where()
+os.environ['SENDGRID_API_KEY'] = "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"
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -8,7 +14,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-&b)b9=ldmzq6p%v7myop3d+g8=a9pwm$^j0p1+6rhmn#l^^zft'
 DEBUG = True
 
-ALLOWED_HOSTS = ['ugogo-auhdbad8drdma7f6.canadacentral-01.azurewebsites.net', '127.0.0.1', '0.0.0.0', 'localhost', "192.168.11.52", "192.168.11.72", "192.168.200.249"]
+ALLOWED_HOSTS = ['ugogo-auhdbad8drdma7f6.canadacentral-01.azurewebsites.net', '127.0.0.1', '0.0.0.0', 'localhost',
+                 "192.168.11.52", "192.168.11.72", "192.168.200.249"]
 
 AUTH_USER_MODEL = 'users.Users'
 
@@ -33,7 +40,8 @@ INSTALLED_APPS = [
     'payments',
     'locations',
     'django_filters',
-    'corsheaders'
+    'corsheaders',
+    'allauth.socialaccount.providers.google',
 ]
 
 MIDDLEWARE = [
@@ -150,3 +158,22 @@ CORS_ALLOWED_ORIGINS = [
 ]
 
 CORS_ALLOW_CREDENTIALS = True
+
+ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_AUTHENTICATION_METHOD = 'email'
+ACCOUNT_USERNAME_REQUIRED = False
+
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST = 'smtp.gmail.com'
+# EMAIL_PORT = 587
+# EMAIL_USE_TLS = True
+# EMAIL_HOST_USER = 'galstyan.simon12@gmail.com'
+# EMAIL_HOST_PASSWORD = '28092003sim'
+# DEFAULT_FROM_EMAIL = 'your-email@example.com'
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'sandbox.smtp.mailtrap.io'
+EMAIL_HOST_USER = '7eaa24b56b91c5'
+EMAIL_HOST_PASSWORD = 'b080d27c5eaa4e'
+EMAIL_PORT = '2525'

@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import RegisterUserView, CustomTokenObtainPairView, LogOutView
+from .views import RegisterUserView, CustomTokenObtainPairView, LogOutView, VerifyEmailView
 from rest_framework_simplejwt.views import TokenRefreshView, TokenBlacklistView
 
 urlpatterns = [
@@ -7,4 +7,5 @@ urlpatterns = [
     path('token/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('token/logout/', LogOutView.as_view(), name='token_logout'),
+    path('verfiy-email/', VerifyEmailView.as_view(), name='verify-email'),
 ]
