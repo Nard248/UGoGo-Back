@@ -117,7 +117,7 @@ class VerifyEmailView(APIView):
                          }
                          )
     def post(self, request):
-        serializer = self.get_serializer(data=request.data)
+        serializer = EmailVerificationSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
