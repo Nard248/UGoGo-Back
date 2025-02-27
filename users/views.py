@@ -5,11 +5,12 @@ from rest_framework import status
 from rest_framework.permissions import AllowAny
 from rest_framework_simplejwt.views import TokenObtainPairView
 from .serializers import RegisterUserSerializer, CustomUserSerializer, CustomTokenObtainPairSerializer, \
-    LogOutSerializer, PasswordResetSerializer, EmailVerificationSerializer
+    LogOutSerializer, PasswordResetSerializer, EmailVerificationSerializer, ResendVerificationCodeSerializer
 from .models import Users
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import serializers
 from django.utils import timezone
+
 
 
 
@@ -144,6 +145,7 @@ class VerifyEmailView(APIView):
         return Response({"message": "Email verified successfully."}, status=status.HTTP_201_CREATED)
 
 class ForgotPasswordView(APIView):
+    #TODO: Implement this view
     permission_classes = [AllowAny]
 
     @swagger_auto_schema(exclude=True,
@@ -159,4 +161,34 @@ class ForgotPasswordView(APIView):
         if serializer.is_valid():
             serializer.save()
             return Response({"message": "Password reset link sent successfully."}, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class ResendVerificationCodeView(APIView):
+    permission_classes = [AllowAny]
+
+    @swagger_auto_schema(exclude=True,
+                         operation_description="Request a password reset link.",
+                         request_body=ResendVerificationCodeSerializer,
+                         responses={
+                             200: "Email was sent successfully.",
+                             404: "There is no user registered with this email"
+                         }
+                         )
+    def post(self, request):
+        serializer = ResendVerificationCodeSerializer(data=request.data, context={'request': request})
+        if serializer.is_valid():
+            email = serializer.validated_data['email']
+            try:
+                user = Users.objects.get(email=email)
+                if not user:
+                    return Response({"error": "There is no user registered with this email", "is_registered": False}, status=status.HTTP_404_NOT_FOUND)
+                try:
+                    send_verification_email(user)
+                except:
+                    return Response({"error": "Failed to send email."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                user.code_expiration = timezone.now() + timezone.timedelta(minutes=10)
+                user.save()
+                return Response({"message": "Email was sent successfully."}, status=status.HTTP_200_OK)
+            except Users.DoesNotExist:
+                return Response({"error": "There is no user registered with this email"}, status=status.HTTP_404_NOT_FOUND)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

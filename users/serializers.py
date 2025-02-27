@@ -40,7 +40,7 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         user = self.user
 
         if not user.is_email_verified:
-            raise serializers.ValidationError({"error": "Login failed. Email is not verified."})
+            raise serializers.ValidationError({"error": "Login failed. Email is not verified.", "is_email_verified": False})
 
         if not user.is_active:
             raise serializers.ValidationError({"error": "Login failed. User account is not active."})
@@ -84,3 +84,6 @@ class PasswordResetSerializer(serializers.Serializer):
 class EmailVerificationSerializer(serializers.Serializer):
     email = serializers.EmailField()
     email_verification_code = serializers.CharField()
+
+class ResendVerificationCodeSerializer(serializers.Serializer):
+    email = serializers.EmailField()

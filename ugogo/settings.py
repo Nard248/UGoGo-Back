@@ -15,7 +15,7 @@ SECRET_KEY = 'django-insecure-&b)b9=ldmzq6p%v7myop3d+g8=a9pwm$^j0p1+6rhmn#l^^zft
 DEBUG = True
 
 ALLOWED_HOSTS = ['ugogo-auhdbad8drdma7f6.canadacentral-01.azurewebsites.net', '127.0.0.1', '0.0.0.0', 'localhost',
-                 "192.168.11.52", "192.168.11.72", "192.168.200.249"]
+                 "192.168.11.52", "192.168.11.72", "192.168.200.249", "192.168.11.55"]
 
 AUTH_USER_MODEL = 'users.Users'
 
@@ -155,6 +155,8 @@ CORS_ALLOWED_ORIGINS = [
     'http://192.168.11.52:8000',
     'http://localhost:8000',
     'http://127.0.0.1:8000',
+    'http://0.0.0.0',
+    'http://192.168.11.70'
 ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -164,16 +166,16 @@ ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_AUTHENTICATION_METHOD = 'email'
 ACCOUNT_USERNAME_REQUIRED = False
 
-# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-# EMAIL_HOST = 'smtp.gmail.com'
-# EMAIL_PORT = 587
-# EMAIL_USE_TLS = True
-# EMAIL_HOST_USER = 'galstyan.simon12@gmail.com'
-# EMAIL_HOST_PASSWORD = '28092003sim'
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'galstyan.simon12@gmail.com'
+EMAIL_HOST_PASSWORD = 'fhiijqdefmtibhkb'
 # DEFAULT_FROM_EMAIL = 'your-email@example.com'
 
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'sandbox.smtp.mailtrap.io'
-EMAIL_HOST_USER = '7eaa24b56b91c5'
-EMAIL_HOST_PASSWORD = 'b080d27c5eaa4e'
-EMAIL_PORT = '2525'
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST = 'sandbox.smtp.mailtrap.io'
+# EMAIL_HOST_USER = '7eaa24b56b91c5'
+# EMAIL_HOST_PASSWORD = 'b080d27c5eaa4e'
+# EMAIL_PORT = '2525'

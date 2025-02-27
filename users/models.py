@@ -45,7 +45,7 @@ class Users(AbstractBaseUser, PermissionsMixin):
         db_table = "users"  # Ensure table name matches
 
     def generate_verification_code(self):
-        self.email_verification_code = str(randint(100000, 999999))  # 6-digit code
+        self.email_verification_code = str(randint(100000, 999999))
         self.code_expiration = datetime.now() + timedelta(minutes=10)
         self.save()
 
