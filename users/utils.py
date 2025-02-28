@@ -18,3 +18,4 @@ def send_verification_email(user):
     except Exception as e:
         logger.error("Failed to send email", exc_info=True)
         raise e
+
