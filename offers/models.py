@@ -51,6 +51,7 @@ class Offer(models.Model):
     available_weight = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     available_space = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     categories = models.ManyToManyField(ItemCategory, related_name='offers', blank=True)
+    #TODO the relationship should be modified so that I could delete offers.
     notes = models.TextField(blank=True, null=True)
 
 

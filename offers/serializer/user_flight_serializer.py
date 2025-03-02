@@ -1,6 +1,6 @@
 from offers.models import Flight, UserFlight
 from offers.serializer.flight_serializer import FlightSerializer
-from users.serializers import CustomUserSerializer
+from users.serializers.serializers import CustomUserSerializer
 from rest_framework import serializers
 
 class UserFlightSerializer(serializers.ModelSerializer):

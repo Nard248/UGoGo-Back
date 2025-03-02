@@ -6,7 +6,7 @@ from items.models.items import Item, ItemCategory, ItemPicture
 from items.models.request import Request
 from offers.models import Offer
 from offers.serializer.offer_serializer import OfferCreateSerializer
-from users.serializers import CustomUserSerializer
+from users.serializers.serializers import CustomUserSerializer
 
 
 class ItemCategorySerializer(serializers.ModelSerializer):

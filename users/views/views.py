@@ -1,23 +1,18 @@
+from django.utils import timezone
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework.views import APIView
-from rest_framework.response import Response
+from rest_framework import serializers
 from rest_framework import status
 from rest_framework.permissions import AllowAny
-from rest_framework_simplejwt.views import TokenObtainPairView
-from .serializers import RegisterUserSerializer, CustomUserSerializer, CustomTokenObtainPairSerializer, \
-    LogOutSerializer, SendResedPasswordLinkSerializer, EmailVerificationSerializer, ResendVerificationCodeSerializer
-from .models import Users
+from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework import serializers
-from django.utils import timezone
+from rest_framework_simplejwt.views import TokenObtainPairView
 
-import logger
-
-
-
-
-from .swagger_schemas.login_schema import login_schema
-from .utils import send_verification_email
+from users.models import Users
+from users.serializers.serializers import RegisterUserSerializer, CustomUserSerializer, CustomTokenObtainPairSerializer, \
+    LogOutSerializer, SendResedPasswordLinkSerializer, EmailVerificationSerializer, ResendVerificationCodeSerializer
+from users.swagger_schemas.login_schema import login_schema
+from users.utils import send_verification_email
 
 
 class RegisterUserView(APIView):
@@ -104,11 +99,10 @@ class LogOutView(APIView):
                             status=status.HTTP_400_BAD_REQUEST)
 
 
-
-
 class VerifyEmailView(APIView):
     permission_classes = [AllowAny]
     serializer_class = EmailVerificationSerializer
+
     @swagger_auto_schema(exclude=True,
                          operation_description="Verify the user's email with the provided verification code.",
                          request_body=EmailVerificationSerializer,
@@ -147,6 +141,7 @@ class VerifyEmailView(APIView):
 
         return Response({"message": "Email verified successfully."}, status=status.HTTP_201_CREATED)
 
+
 class SendResedPasswordLink(APIView):
     permission_classes = [AllowAny]
 
@@ -165,6 +160,7 @@ class SendResedPasswordLink(APIView):
             # reset_user_password()
             return Response({"message": "Password reset link sent successfully."}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class ResetPasswrod(APIView):
     permission_classes = [AllowAny]
@@ -185,6 +181,7 @@ class ResetPasswrod(APIView):
             return Response({"message": "Password reset link sent successfully."}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
 class ResendVerificationCodeView(APIView):
     permission_classes = [AllowAny]
 
@@ -203,7 +200,8 @@ class ResendVerificationCodeView(APIView):
             try:
                 user = Users.objects.get(email=email)
                 if not user:
-                    return Response({"error": "There is no user registered with this email", "is_registered": False}, status=status.HTTP_404_NOT_FOUND)
+                    return Response({"error": "There is no user registered with this email", "is_registered": False},
+                                    status=status.HTTP_404_NOT_FOUND)
                 try:
                     send_verification_email(user)
                 except:
@@ -212,5 +210,6 @@ class ResendVerificationCodeView(APIView):
                 user.save()
                 return Response({"message": "Email was sent successfully."}, status=status.HTTP_200_OK)
             except Users.DoesNotExist:
-                return Response({"error": "There is no user registered with this email"}, status=status.HTTP_404_NOT_FOUND)
+                return Response({"error": "There is no user registered with this email"},
+                                status=status.HTTP_404_NOT_FOUND)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
