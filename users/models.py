@@ -49,6 +49,9 @@ class Users(AbstractBaseUser, PermissionsMixin):
         self.code_expiration = datetime.now() + timedelta(minutes=10)
         self.save()
 
+    def get_password(self):
+        return self.password
+
 
 class PID(models.Model):
     picture = models.CharField(max_length=255)

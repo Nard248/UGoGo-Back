@@ -5,11 +5,13 @@ from rest_framework import status
 from rest_framework.permissions import AllowAny
 from rest_framework_simplejwt.views import TokenObtainPairView
 from .serializers import RegisterUserSerializer, CustomUserSerializer, CustomTokenObtainPairSerializer, \
-    LogOutSerializer, PasswordResetSerializer, EmailVerificationSerializer, ResendVerificationCodeSerializer
+    LogOutSerializer, SendResedPasswordLinkSerializer, EmailVerificationSerializer, ResendVerificationCodeSerializer
 from .models import Users
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import serializers
 from django.utils import timezone
+
+import logger
 
 
 
@@ -64,6 +66,7 @@ class CustomTokenObtainPairView(TokenObtainPairView):
         try:
             serializer.is_valid(raise_exception=True)
         except serializers.ValidationError as e:
+            # logger.error(f"Token validation failed: {e}")
             return Response(e.detail, status=status.HTTP_400_BAD_REQUEST)
 
         return super().post(request, *args, **kwargs)
@@ -144,22 +147,41 @@ class VerifyEmailView(APIView):
 
         return Response({"message": "Email verified successfully."}, status=status.HTTP_201_CREATED)
 
-class ForgotPasswordView(APIView):
-    #TODO: Implement this view
+class SendResedPasswordLink(APIView):
     permission_classes = [AllowAny]
 
     @swagger_auto_schema(exclude=True,
                          operation_description="Request a password reset link.",
-                         request_body=PasswordResetSerializer,
+                         request_body=SendResedPasswordLinkSerializer,
                          responses={
                              200: "Password reset link sent successfully.",
                              400: "Bad request - Validation error",
                          }
                          )
     def post(self, request):
-        serializer = PasswordResetSerializer(data=request.data, context={'request': request})
+        serializer = SendResedPasswordLinkSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
-            serializer.save()
+            user = serializer.context['user']
+            # reset_user_password()
+            return Response({"message": "Password reset link sent successfully."}, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class ResetPasswrod(APIView):
+    permission_classes = [AllowAny]
+
+    @swagger_auto_schema(exclude=True,
+                         operation_description="Request a password reset link.",
+                         request_body=SendResedPasswordLinkSerializer,
+                         responses={
+                             200: "Password reset link sent successfully.",
+                             400: "Bad request - Validation error",
+                         }
+                         )
+    def post(self, request):
+        serializer = SendResedPasswordLinkSerializer(data=request.data, context={'request': request})
+        if serializer.is_valid():
+            user = serializer.context['user']
+            # reset_user_password()
             return Response({"message": "Password reset link sent successfully."}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

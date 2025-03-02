@@ -62,7 +62,7 @@ class LogOutSerializer(serializers.Serializer):
     refresh = serializers.CharField(help_text="The refresh token to be blacklisted.")
 
 
-class PasswordResetSerializer(serializers.Serializer):
+class SendResedPasswordLinkSerializer(serializers.Serializer):
     email = serializers.EmailField()
 
     def validate_email(self, value):
@@ -70,6 +70,7 @@ class PasswordResetSerializer(serializers.Serializer):
             user = Users.objects.get(email=value)
         except Users.DoesNotExist:
             raise serializers.ValidationError("User with this email does not exist.")
+        self.context['user'] = user
         return value
 
     def save(self):
