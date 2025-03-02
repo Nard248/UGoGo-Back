@@ -14,7 +14,7 @@ class AdminLoginView(TokenObtainPairView):
     serializer_class = AdminLoginSerializer
 
     @swagger_auto_schema(exclude=True,
-                         operation_description="Obtain access and refresh tokens by providing valid credentials.",
+                         operation_description="Login for admin, only admin user can login via this endpoint.",
                          request_body=login_schema,
                          responses={
                              200: "Access and refresh tokens issued successfully.",
