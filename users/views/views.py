@@ -2,7 +2,7 @@ from django.utils import timezone
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import serializers
 from rest_framework import status
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -213,3 +213,17 @@ class ResendVerificationCodeView(APIView):
                 return Response({"error": "There is no user registered with this email"},
                                 status=status.HTTP_404_NOT_FOUND)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class UserInfoView(APIView):
+    permission_classes = [IsAuthenticated]
+    @swagger_auto_schema(exclude=True,
+                         operation_description="Get user information.",
+                         responses={
+                             200: "User information retrieved successfully.",
+                             404: "User not found."
+                         }
+                         )
+    def get(self, request):
+        user = request.user
+        serializer = CustomUserSerializer(user)
+        return Response(serializer.data)
