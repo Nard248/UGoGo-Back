@@ -20,7 +20,9 @@ ALLOWED_HOSTS = ['ugogo-auhdbad8drdma7f6.canadacentral-01.azurewebsites.net', '1
 AUTH_USER_MODEL = 'users.Users'
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://ugogo-auhdbad8drdma7f6.canadacentral-01.azurewebsites.net"
+    "https://ugogo-auhdbad8drdma7f6.canadacentral-01.azurewebsites.net",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000"
 ]
 # Application definition
 INSTALLED_APPS = [
@@ -149,14 +151,16 @@ SIMPLE_JWT = {
     'SIGNING_KEY': SECRET_KEY,  # Use the Django SECRET_KEY
 }
 
-CORS_ALLOW_ALL_ORIGINS = True
+# CORS_ALLOW_ALL_ORIGINS = True
 
 CORS_ALLOWED_ORIGINS = [
     'http://192.168.11.52:8000',
     'http://localhost:8000',
     'http://127.0.0.1:8000',
     'http://0.0.0.0',
-    'http://192.168.11.70'
+    'http://192.168.11.70',
+    'http://localhost:3000',
+    'http://192.168.184.180:3000'
 ]
 
 CORS_ALLOW_CREDENTIALS = True

@@ -3,17 +3,26 @@ from offers.models import Offer
 from locations.models import Airport
 
 class OfferSearchSerializer(serializers.Serializer):
-    origin_airport = serializers.CharField(max_length=3, required=True)
-    destination_airport = serializers.CharField(max_length=3, required=True)
+    origin_airport = serializers.CharField(max_length=40, required=True)
+    destination_airport = serializers.CharField(max_length=40, required=True)
     takeoff_date = serializers.DateField(required=True)
 
+
+    class Meta:
+        model = Offer
+        fields = [
+            'id', 'user_flight', 'user_flight_id', 'courier_id',
+            'status', 'price',
+            'available_weight', 'available_space'
+        ]
+
     def validate_origin_airport(self, value):
-        if not Airport.objects.filter(code=value).exists():
+        if not Airport.objects.filter(airport_code=value).exists():
             raise serializers.ValidationError("Invalid origin airport code.")
         return value
 
     def validate_destination_airport(self, value):
-        if not Airport.objects.filter(code=value).exists():
+        if not Airport.objects.filter(airport_code=value).exists():
             raise serializers.ValidationError("Invalid destination airport code.")
         return value
 
@@ -31,8 +40,8 @@ class OfferSearchSerializer(serializers.Serializer):
         takeoff_date = validated_data['takeoff_date']
 
         offers = Offer.objects.filter(
-            user_flight__flight__from_airport__code=origin_airport,
-            user_flight__flight__to_airport__code=destination_airport,
+            user_flight__flight__from_airport__airport_code=origin_airport,
+            user_flight__flight__to_airport__airport_code=destination_airport,
             user_flight__flight__departure_datetime__date=takeoff_date
         )
         return offers

@@ -144,3 +144,22 @@ class OfferListCreateAPIView(generics.ListCreateAPIView):
                          )
     def get(self, request, *args, **kwargs):
         return super().get(request, *args, **kwargs)
+
+
+class GetUserOffersView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = OfferSerializer
+
+    @swagger_auto_schema(
+        operation_description="Retrieve a list of offers created by the authenticated user.",
+        responses={
+            200: OfferSerializer(many=True),
+            401: "Unauthorized",
+        }
+    )
+    def get(self, request, *args, **kwargs):
+        # return
+        user = request.user
+        offers = Offer.objects.filter(courier=user)
+        serializer = OfferSerializer(offers, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
