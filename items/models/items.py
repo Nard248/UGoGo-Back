@@ -1,3 +1,4 @@
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django.conf import settings
 
@@ -25,7 +26,12 @@ class Item(models.Model):
         ('draft', 'Draft'),
         ('published', 'Published'),
         ('archived', 'Archived'),
-        # Add more states as needed
+    ]
+
+    VERIFICATION_CHOICES = [
+        ('pending', 'Pending'),
+        ('verified', 'Verified'),
+        ('rejected', 'Rejected'),
     ]
 
     user = models.ForeignKey(
@@ -37,7 +43,12 @@ class Item(models.Model):
     description = models.TextField(blank=True, null=True)
     weight = models.DecimalField(max_digits=10, decimal_places=2)
     dimensions = models.CharField(max_length=100)
-    verified = models.BooleanField(default=False)
+    is_pictures_uploaded = models.BooleanField(default=False)
+    verified = models.CharField(
+        max_length=20,
+        choices=VERIFICATION_CHOICES,
+        default='pending'
+    )
     state = models.CharField(
         max_length=20,
         choices=STATE_CHOICES,
@@ -61,6 +72,16 @@ class Item(models.Model):
     def __str__(self):
         return f"{self.name} (Owner: {self.user.email})"
 
+    @classmethod
+    def get_item_by_id(cls, item_id):
+        try:
+            return cls.objects.get(id=item_id)
+        except ObjectDoesNotExist:
+            return None
+
+    def set_verification_status(self, value):
+        self.verified = value
+        self.save()
 
 class ItemPicture(models.Model):
     """

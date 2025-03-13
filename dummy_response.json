@@ -1,0 +1,64 @@
+[
+    {
+        "id": 11,
+        "user_flight": {
+            "id": 24,
+            "flight": {
+                "id": 37,
+                "publisher": "airline",
+                "publisher_display": "Airline",
+                "from_airport": {
+                    "id": 1,
+                    "city": {
+                        "id": 1,
+                        "country": {
+                            "id": 1,
+                            "country_code": "AM",
+                            "country_abbr": "ARM",
+                            "country_name": "Armenia"
+                        },
+                        "city_code": "YE",
+                        "city_abbr": "YE",
+                        "city_name": "Yerevan",
+                        "timezone": "Asia/Yerevan"
+                    },
+                    "airport_code": "ZTZ",
+                    "airport_name": "Zvartnots International Airport"
+                },
+                "to_airport": {
+                    "id": 2,
+                    "city": {
+                        "id": 2,
+                        "country": {
+                            "id": 2,
+                            "country_code": "FRC",
+                            "country_abbr": "FRC",
+                            "country_name": "France"
+                        },
+                        "city_code": "PRS_",
+                        "city_abbr": "PRS_",
+                        "city_name": "Paris_",
+                        "timezone": "Central European"
+                    },
+                    "airport_code": "PRSPRT",
+                    "airport_name": "Paris International Airport"
+                },
+                "departure_datetime": "2025-01-28T14:00:00-06:00",
+                "arrival_datetime": "2025-01-26T14:00:00-06:00"
+            },
+            "user": {
+                "id": 15,
+                "email": "test@test.com",
+                "first_name": null,
+                "last_name": null,
+                "full_name": "Simon Galstyan"
+            },
+            "publish_datetime": "2025-01-27T09:35:35.862472-06:00"
+        },
+        "courier_id": 15,
+        "status": "available",
+        "price": "20.00",
+        "available_weight": "1.00",
+        "available_space": "1.00"
+    }
+]

@@ -9,9 +9,9 @@ from items.models.request import Request
 from items.serializers import (
     ItemSerializer,
     RequestSerializer,
-    UnifiedItemSerializer
+    UnifiedItemSerializer, ItemVerificationSerializer
 )
-from items.permissions import IsOwnerOrReadOnly, IsCourierOfOffer
+from items.permissions import IsOwnerOrReadOnly, IsCourierOfOffer, IsAdmin
 from rest_framework.pagination import PageNumberPagination
 from items.swagger_schemas.unified_item_schema import item_creation_body_schema
 
@@ -157,3 +157,36 @@ class GetAllCategoriesView(APIView):
     def get(self, request, *args, **kwargs):
         all_categories = ItemCategory.objects.all()
         return Response(all_categories.values(), status=status.HTTP_200_OK)
+
+class VerifyItemView(APIView):
+    permission_classes = [IsAdmin]
+    serializer_class = ItemVerificationSerializer
+
+    @swagger_auto_schema(
+        operation_description="Verify user passport",
+        request_body=ItemVerificationSerializer,
+        responses={
+            200: "User passport verified successfully.",
+            400: "Bad request - Validation error",
+        })
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            validated_data = serializer.validated_data
+            item = Item.get_item_by_id(validated_data["item_id"])
+            if not item:
+                return Response({"message": "Item not found."}, status=status.HTTP_404_NOT_FOUND)
+
+            if not item.is_pictures_uploaded:
+                return Response({"message": "Item photos are not uploaded"}, status=status.HTTP_400_BAD_REQUEST)
+
+            if validated_data["is_item_verified"]:
+                item.set_verification_status("verified")
+                # send_passport_verification_sccuess_email(user)
+
+            if not validated_data["is_item_verified"]:
+                item.set_verification_status("rejected")
+                # send_passport_verification_failed_email(user, validated_data["message"])
+
+            return Response({"message": "Item was verified successfully."}, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
