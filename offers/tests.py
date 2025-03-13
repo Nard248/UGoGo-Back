@@ -9,6 +9,88 @@ from locations.models import Country, City, Airport
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.utils import timezone
 from datetime import timedelta
+    #     self.assertEqual(flight['publisher'], 'airline')
+    #     self.assertEqual(flight['from_airport']['airport_code'], 'EVN')
+    #     self.assertEqual(flight['to_airport']['airport_code'], 'LDN')
+    #
+    # def test_create_flight(self):
+    #     url = reverse('flight-list-create')
+    #     data = {
+    #         'publisher': 'custom',
+    #         'from_airport_id': self.airport_origin.id,
+    #         'to_airport_id': self.airport_destination.id,
+    #         'departure_datetime': (timezone.now() + timedelta(days=2)).isoformat(),
+    #         'arrival_datetime': (timezone.now() + timedelta(days=2, hours=6)).isoformat()
+    #     }
+    #     response = self.client.post(url, data, format='json')
+    #     self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+    #     self.assertEqual(Flight.objects.count(), 2)
+    #     new_flight = Flight.objects.get(id=response.data['id'])
+    #     self.assertEqual(new_flight.publisher, 'custom')
+
+#     def test_retrieve_flight_detail(self):
+#         url = reverse('flight-detail', kwargs={'pk': self.flight.id})
+#         response = self.client.get(url, format='json')
+#         self.assertEqual(response.status_code, status.HTTP_200_OK)
+#         flight = response.data
+#         self.assertEqual(flight['id'], self.flight.id)
+#         self.assertEqual(flight['from_airport']['airport_code'], 'EVN')
+#         self.assertEqual(flight['to_airport']['airport_code'], 'LDN')
+#
+#     def test_update_flight(self):
+#         url = reverse('flight-detail', kwargs={'pk': self.flight.id})
+#         data = {
+#             'publisher': 'airline',
+#             'from_airport_id': self.airport_origin.id,
+#             'to_airport_id': self.airport_destination.id,
+#             'departure_datetime': (timezone.now() + timedelta(days=3)).isoformat(),
+#             'arrival_datetime': (timezone.now() + timedelta(days=3, hours=5)).isoformat()
+#         }
+#         response = self.client.put(url, data, format='json')
+#         self.assertEqual(response.status_code, status.HTTP_200_OK)
+#         self.flight.refresh_from_db()
+#         self.assertEqual(self.flight.departure_datetime.date(), (timezone.now() + timedelta(days=3)).date())
+#
+#     def test_partial_update_flight(self):
+#         url = reverse('flight-detail', kwargs={'pk': self.flight.id})
+#         data = {
+#             'publisher': 'airline'
+#         }
+#         response = self.client.patch(url, data, format='json')
+#         self.assertEqual(response.status_code, status.HTTP_200_OK)
+#         self.flight.refresh_from_db()
+#         self.assertEqual(self.flight.publisher, 'airline')
+#
+#     def test_delete_flight(self):
+#         url = reverse('flight-detail', kwargs={'pk': self.flight.id})
+#         response = self.client.delete(url, format='json')
+#         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+#         self.assertEqual(Flight.objects.count(), 0)
+#
+#     def test_search_flights(self):
+#         url = reverse('flight-search')
+#         params = {
+#             'origin': 'Yerevan',
+#             'destination': 'London',
+#             'departure_date_from': (timezone.now() + timedelta(days=1)).date(),
+#             'departure_date_to': (timezone.now() + timedelta(days=2)).date(),
+#             'min_weight': 10,
+#             'max_weight': 30,
+#             'min_price': 100,
+#             'max_price': 200,
+#             'ordering': 'price'
+#         }
+#         response = self.client.get(url, params, format='json')
+#         self.assertEqual(response.status_code, status.HTTP_200_OK)
+#         self.assertEqual(len(response.data['results']), 1)
+#         offer = response.data['results'][0]
+#         self.assertEqual(offer['id'], self.offer.id)
+#         self.assertEqual(offer['price'], '150.00')
+#
+#     def test_search_flights_invalid_params(self):
+#         url = reverse('flight-search')
+#         params = {
+#             'origin': 'Yerevan',
 from items.models.items import ItemCategory
 
 # class OffersAPITestCase(APITestCase):
@@ -92,88 +174,6 @@ from items.models.items import ItemCategory
 #         self.assertEqual(len(response.data['results']), 1)
 #         flight = response.data['results'][0]
 #         self.assertEqual(flight['id'], self.flight.id)
-#         self.assertEqual(flight['publisher'], 'airline')
-#         self.assertEqual(flight['from_airport']['airport_code'], 'EVN')
-#         self.assertEqual(flight['to_airport']['airport_code'], 'LDN')
-#
-#     def test_create_flight(self):
-#         url = reverse('flight-list-create')
-#         data = {
-#             'publisher': 'custom',
-#             'from_airport_id': self.airport_origin.id,
-#             'to_airport_id': self.airport_destination.id,
-#             'departure_datetime': (timezone.now() + timedelta(days=2)).isoformat(),
-#             'arrival_datetime': (timezone.now() + timedelta(days=2, hours=6)).isoformat()
-#         }
-#         response = self.client.post(url, data, format='json')
-#         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-#         self.assertEqual(Flight.objects.count(), 2)
-#         new_flight = Flight.objects.get(id=response.data['id'])
-#         self.assertEqual(new_flight.publisher, 'custom')
-#
-#     def test_retrieve_flight_detail(self):
-#         url = reverse('flight-detail', kwargs={'pk': self.flight.id})
-#         response = self.client.get(url, format='json')
-#         self.assertEqual(response.status_code, status.HTTP_200_OK)
-#         flight = response.data
-#         self.assertEqual(flight['id'], self.flight.id)
-#         self.assertEqual(flight['from_airport']['airport_code'], 'EVN')
-#         self.assertEqual(flight['to_airport']['airport_code'], 'LDN')
-#
-#     def test_update_flight(self):
-#         url = reverse('flight-detail', kwargs={'pk': self.flight.id})
-#         data = {
-#             'publisher': 'airline',
-#             'from_airport_id': self.airport_origin.id,
-#             'to_airport_id': self.airport_destination.id,
-#             'departure_datetime': (timezone.now() + timedelta(days=3)).isoformat(),
-#             'arrival_datetime': (timezone.now() + timedelta(days=3, hours=5)).isoformat()
-#         }
-#         response = self.client.put(url, data, format='json')
-#         self.assertEqual(response.status_code, status.HTTP_200_OK)
-#         self.flight.refresh_from_db()
-#         self.assertEqual(self.flight.departure_datetime.date(), (timezone.now() + timedelta(days=3)).date())
-#
-#     def test_partial_update_flight(self):
-#         url = reverse('flight-detail', kwargs={'pk': self.flight.id})
-#         data = {
-#             'publisher': 'airline'
-#         }
-#         response = self.client.patch(url, data, format='json')
-#         self.assertEqual(response.status_code, status.HTTP_200_OK)
-#         self.flight.refresh_from_db()
-#         self.assertEqual(self.flight.publisher, 'airline')
-#
-#     def test_delete_flight(self):
-#         url = reverse('flight-detail', kwargs={'pk': self.flight.id})
-#         response = self.client.delete(url, format='json')
-#         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-#         self.assertEqual(Flight.objects.count(), 0)
-#
-#     def test_search_flights(self):
-#         url = reverse('flight-search')
-#         params = {
-#             'origin': 'Yerevan',
-#             'destination': 'London',
-#             'departure_date_from': (timezone.now() + timedelta(days=1)).date(),
-#             'departure_date_to': (timezone.now() + timedelta(days=2)).date(),
-#             'min_weight': 10,
-#             'max_weight': 30,
-#             'min_price': 100,
-#             'max_price': 200,
-#             'ordering': 'price'
-#         }
-#         response = self.client.get(url, params, format='json')
-#         self.assertEqual(response.status_code, status.HTTP_200_OK)
-#         self.assertEqual(len(response.data['results']), 1)
-#         offer = response.data['results'][0]
-#         self.assertEqual(offer['id'], self.offer.id)
-#         self.assertEqual(offer['price'], '150.00')
-#
-#     def test_search_flights_invalid_params(self):
-#         url = reverse('flight-search')
-#         params = {
-#             'origin': 'Yerevan',
 #             'departure_date_from': 'invalid-date',
 #             'min_weight': 'abc',
 #             'max_price': 'xyz'

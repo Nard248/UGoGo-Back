@@ -1,5 +1,6 @@
 from django.urls import path
 
+from .views.admin_user_verification_view import VerifyUserPassportView
 from .views.views import RegisterUserView, CustomTokenObtainPairView, LogOutView, VerifyEmailView, ResendVerificationCodeView, SendResedPasswordLink, UserInfoView
 from rest_framework_simplejwt.views import TokenRefreshView, TokenBlacklistView
 
@@ -15,5 +16,5 @@ urlpatterns = [
     path('verfiy-email/', VerifyEmailView.as_view(), name='verify-email'),
     path('resend-verification-email/', ResendVerificationCodeView.as_view(), name='resend-verification-email'),
     path('forgot-password/', SendResedPasswordLink.as_view(), name='forgot-password'),
-
+    path('admin/verify-user-passport/', VerifyUserPassportView.as_view(), name='forgot-password'),
 ]

@@ -13,6 +13,10 @@ class IsOwnerOrReadOnly(permissions.BasePermission):
         # Otherwise, must be the owner
         return getattr(obj, 'user', None) == request.user
 
+class IsAdmin(permissions.BasePermission):
+    def has_object_permission(self, request, view, obj):
+        return request.user.is_admin()
+
 
 class IsCourierOfOffer(permissions.BasePermission):
     """

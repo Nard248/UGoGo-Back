@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 from random import randint
 
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 
 
@@ -22,6 +23,12 @@ class CustomUserManager(BaseUserManager):
 
 
 class Users(AbstractBaseUser, PermissionsMixin):
+    PASSPORT_STATUS_CHOICES = [
+        ("pending", "Pending"),
+        ("verified", "Verified"),
+        ("rejected", "Rejected")
+    ]
+
     email = models.EmailField(unique=True)
     full_name = models.CharField(max_length=100)
     first_name = models.CharField(max_length=50, null=True)
@@ -29,6 +36,11 @@ class Users(AbstractBaseUser, PermissionsMixin):
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False, null=True)
     date_joined = models.DateTimeField(auto_now_add=True)
+
+    is_passport_uploaded = models.BooleanField(default=False, null=True)
+    passport_verification_status = models.CharField(
+        max_length=10, choices=PASSPORT_STATUS_CHOICES, default='pending'
+    )
 
     ### email verification
     is_email_verified = models.BooleanField(default=False)
@@ -51,6 +63,28 @@ class Users(AbstractBaseUser, PermissionsMixin):
 
     def get_password(self):
         return self.password
+
+    def is_admin(self):
+        return self.is_staff
+
+    def set_is_passport_uploaded(self, value):
+        self.is_passport_uploaded = value
+        self.save()
+
+    def set_passport_verification_status(self, value):
+        self.passport_verification_status = value
+        self.save()
+
+    def set_is_account_active(self, value):
+        self.is_active = value
+        self.save()
+
+    @classmethod
+    def get_user_by_id(cls, user_id):
+        try:
+            return cls.objects.get(id=user_id)
+        except ObjectDoesNotExist:
+            return None
 
 
 class PID(models.Model):
