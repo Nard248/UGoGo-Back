@@ -38,7 +38,7 @@ class VerifyUserPassportView(APIView):
             if not validated_data["is_passport_verified"]:
                 user.set_passport_verification_status("rejected")
                 user.set_is_account_active(False)
-                send_passport_verification_failed_email(user, validated_data["message"])
+                send_passport_verification_failed_email(user, validated_data["rejection_message"])
 
 
             return Response({"message": "User passport verified successfully."}, status=status.HTTP_200_OK)
