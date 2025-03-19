@@ -20,8 +20,7 @@ class AdminLoginSerializer(TokenObtainPairSerializer):
         data["user"] = {
             "id": user.id,
             "email": user.email,
-            "first_name": user.first_name,
-            "last_name": user.last_name,
             "full_name": user.full_name,
+            "is_staff": user.is_staff,  # Add this to explicitly provide admin status
         }
         return data

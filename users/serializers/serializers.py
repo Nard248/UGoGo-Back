@@ -28,7 +28,28 @@ class RegisterUserSerializer(serializers.ModelSerializer):
 class CustomUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = Users
-        fields = ['id', 'email', 'first_name', 'last_name', 'full_name']
+        fields = [
+            'id',
+            'email',
+            'first_name',
+            'last_name',
+            'full_name',
+            'is_active',
+            'is_staff',
+            'date_joined',
+            'is_email_verified',
+            'passport_verification_status',
+            'is_passport_uploaded'
+        ]
+        # Make these fields read-only as they shouldn't be directly modified through this serializer
+        read_only_fields = [
+            'is_active',
+            'is_staff',
+            'date_joined',
+            'is_email_verified',
+            'passport_verification_status',
+            'is_passport_uploaded'
+        ]
 
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):

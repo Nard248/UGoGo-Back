@@ -14,6 +14,13 @@ from users.serializers.serializers import RegisterUserSerializer, CustomUserSeri
 from users.swagger_schemas.login_schema import login_schema
 from users.utils import send_verification_email
 
+from rest_framework.decorators import permission_classes
+from rest_framework import status
+from django.db.models import Q
+from drf_yasg import openapi
+from django.core.paginator import Paginator
+
+from items.permissions import IsAdmin
 
 class RegisterUserView(APIView):
     permission_classes = [AllowAny]
@@ -214,6 +221,7 @@ class ResendVerificationCodeView(APIView):
                                 status=status.HTTP_404_NOT_FOUND)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
 class UserInfoView(APIView):
     permission_classes = [IsAuthenticated]
     @swagger_auto_schema(exclude=True,
@@ -227,3 +235,71 @@ class UserInfoView(APIView):
         user = request.user
         serializer = CustomUserSerializer(user)
         return Response(serializer.data)
+
+
+class UserListView(APIView):
+    """
+    Get list of all users - admin only access
+    """
+    permission_classes = [IsAuthenticated, IsAdmin]
+
+    @swagger_auto_schema(
+        operation_description="Get list of all users (admin only)",
+        manual_parameters=[
+            openapi.Parameter('page', openapi.IN_QUERY, description="Page number", type=openapi.TYPE_INTEGER),
+            openapi.Parameter('page_size', openapi.IN_QUERY, description="Number of items per page",
+                              type=openapi.TYPE_INTEGER),
+            openapi.Parameter('passport_verification_status', openapi.IN_QUERY,
+                              description="Filter by passport verification status",
+                              type=openapi.TYPE_STRING, enum=["pending", "verified", "rejected", "all"]),
+            openapi.Parameter('search', openapi.IN_QUERY, description="Search by email or name",
+                              type=openapi.TYPE_STRING),
+        ],
+        responses={
+            200: "List of users returned successfully",
+            401: "Unauthorized - Authentication credentials were not provided",
+            403: "Permission denied - User is not an admin"
+        }
+    )
+    def get(self, request):
+        page = int(request.query_params.get('page', 1))
+        page_size = min(int(request.query_params.get('page_size', 10)), 100)  # Limit max page size
+        passport_status = request.query_params.get('passport_verification_status', None)
+        search_query = request.query_params.get('search', None)
+
+        users_queryset = Users.objects.all().order_by('-date_joined')
+
+        if passport_status and passport_status != 'all':
+            users_queryset = users_queryset.filter(passport_verification_status=passport_status)
+
+        if search_query:
+            users_queryset = users_queryset.filter(
+                Q(email__icontains=search_query) |
+                Q(full_name__icontains=search_query) |
+                Q(first_name__icontains=search_query) |
+                Q(last_name__icontains=search_query)
+            )
+
+        total_count = users_queryset.count()
+
+        paginator = Paginator(users_queryset, page_size)
+        page_obj = paginator.get_page(page)
+
+        user_serializer = CustomUserSerializer(page_obj, many=True)
+
+        results = []
+        for user_data, user_obj in zip(user_serializer.data, page_obj):
+            user_data['is_active'] = user_obj.is_active
+            user_data['is_staff'] = user_obj.is_staff
+            user_data['is_email_verified'] = user_obj.is_email_verified
+            user_data['passport_verification_status'] = user_obj.passport_verification_status
+            user_data['is_passport_uploaded'] = user_obj.is_passport_uploaded
+            user_data['date_joined'] = user_obj.date_joined
+            results.append(user_data)
+
+        return Response({
+            'results': results,
+            'count': total_count,
+            'total_pages': paginator.num_pages,
+            'current_page': page
+        })
