@@ -45,3 +45,15 @@ class OfferSearchSerializer(serializers.Serializer):
             user_flight__flight__departure_datetime__date=takeoff_date
         )
         return offers
+
+class OfferGetAllSerializer(serializers.Serializer):
+    class Meta:
+        model = Offer
+        fields = [
+            'id', 'user_flight', 'user_flight_id', 'courier_id',
+            'status', 'price',
+            'available_weight', 'available_space'
+        ]
+
+    def search_offers(self):
+        return Offer.objects.all()

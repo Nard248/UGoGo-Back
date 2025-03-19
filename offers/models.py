@@ -50,11 +50,13 @@ class Offer(models.Model):
     available_dimensions = models.CharField(max_length=50, default='0x0x0')
     available_weight = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     available_space = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-    categories = models.ManyToManyField(ItemCategory, related_name='offers', blank=True)
-    #TODO the relationship should be modified so that I could delete offers.
+    categories = models.ManyToManyField(ItemCategory, related_name='offers', blank=True, through='OfferCategory')
     notes = models.TextField(blank=True, null=True)
 
 
     def __str__(self):
         return f"Offer {self.id} by {self.courier.email} - Status: {self.status}"
 
+class OfferCategory(models.Model):
+    offer = models.ForeignKey('Offer', on_delete=models.CASCADE)
+    category = models.ForeignKey(ItemCategory, on_delete=models.CASCADE)
