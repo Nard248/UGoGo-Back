@@ -13,7 +13,7 @@ class OfferSearchView(APIView):
     permission_classes = [AllowAny]
     @swagger_auto_schema(
         exclude=False,
-        request_body=OfferSearchSerializer,
+        query_serializer=OfferSearchSerializer,
         operation_description="Retrieve detailed information about a specific flight offer.",
         responses={
             200: OfferSearchSerializer(),
