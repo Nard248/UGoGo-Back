@@ -84,15 +84,14 @@ class Item(models.Model):
         self.save()
 
 class ItemPicture(models.Model):
-    """
-    Multiple pictures for a single item.
-    """
     item = models.ForeignKey(
         Item,
         on_delete=models.CASCADE,
-        related_name='pictures'
+        related_name='image'
     )
-    image_path = models.CharField(max_length=255)
+
+    image = models.ImageField(upload_to='item_pictures/', default="default_item.jpg")
 
     def __str__(self):
-        return f"Picture for {self.item.name}: {self.image_path}"
+        return f"Picture for {self.item.name}: {self.picture.url if self.picture else 'No image'}"
+

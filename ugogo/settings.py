@@ -1,14 +1,23 @@
+import certifi
+import environ
 import os
 from datetime import timedelta
 from pathlib import Path
+from corsheaders.defaults import default_headers
 
-import certifi
+
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+env = environ.Env()
+
+environ.Env.read_env(os.path.join(BASE_DIR, '.env.test'))
 
 os.environ['SSL_CERT_FILE'] = certifi.where()
 os.environ['SENDGRID_API_KEY'] = "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"
 
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Secret key and debug settings
 SECRET_KEY = 'django-insecure-&b)b9=ldmzq6p%v7myop3d+g8=a9pwm$^j0p1+6rhmn#l^^zft'
@@ -32,6 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'storages',
     'drf_yasg',
     'rest_framework',
     'rest_framework_simplejwt',
@@ -113,7 +123,9 @@ STATIC_URL = 'static/'
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Swagger settings
+
+DEFAULT_FILE_STORAGE = 'storages.backends.azure_storage.AzureStorage'
+
 SWAGGER_SETTINGS = {
     'SECURITY_DEFINITIONS': {
         'Bearer': {
@@ -151,16 +163,22 @@ SIMPLE_JWT = {
     'SIGNING_KEY': SECRET_KEY,  # Use the Django SECRET_KEY
 }
 
-# CORS_ALLOW_ALL_ORIGINS = True
 
 CORS_ALLOWED_ORIGINS = [
     'http://192.168.11.52:8000',
-    'http://localhost:8000',
+    'http://localhost:3000',
     'http://127.0.0.1:8000',
     'http://0.0.0.0',
     'http://192.168.11.70',
     'http://localhost:3000',
     'http://192.168.184.180:3000'
+]
+
+
+CORS_ALLOW_HEADERS = list(default_headers) + [
+    "Authorization",
+    "Content-Type",
+    "X-CSRFToken",
 ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -170,16 +188,16 @@ ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_AUTHENTICATION_METHOD = 'email'
 ACCOUNT_USERNAME_REQUIRED = False
 
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'galstyan.simon12@gmail.com'
-EMAIL_HOST_PASSWORD = 'fhiijqdefmtibhkb'
-# DEFAULT_FROM_EMAIL = 'your-email@example.com'
 
-# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-# EMAIL_HOST = 'sandbox.smtp.mailtrap.io'
-# EMAIL_HOST_USER = '7eaa24b56b91c5'
-# EMAIL_HOST_PASSWORD = 'b080d27c5eaa4e'
-# EMAIL_PORT = '2525'
+AZURE_ACCOUNT_NAME = env("AZURE_ACCOUNT_NAME")
+AZURE_ACCOUNT_KEY = env("AZURE_ACCOUNT_KEY")
+AZURE_ITEM_IMAGE_CONTAINER = env("AZURE_ITEM_IMAGE_CONTAINER")
+AZURE_ITEM_CATEGORY_LOGO_CONTAINER = env("AZURE_ITEM_CATEGORY_LOGO_CONTAINER")
+AZURE_USER_PASSPORT_IMAGE_CONTAINER = env("AZURE_USER_PASSPORT_IMAGE_CONTAINER")
+
+EMAIL_BACKEND = env("EMAIL_BACKEND")
+EMAIL_HOST = env("EMAIL_HOST")
+EMAIL_PORT = env("EMAIL_PORT")
+# EMAIL_USE_TLS = env("EMAIL_USE_TLS")
+EMAIL_HOST_USER = env("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")

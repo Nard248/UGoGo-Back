@@ -1,20 +1,17 @@
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from drf_yasg.utils import swagger_auto_schema
-from drf_yasg import openapi
 from rest_framework.views import APIView
 
-from items.models.items import Item, ItemPicture, ItemCategory
+from items.models.items import Item, ItemCategory
 from items.models.request import Request
 from items.serializers import (
     ItemSerializer,
-    RequestSerializer,
-    UnifiedItemSerializer, ItemVerificationSerializer
+    RequestSerializer
 )
-from items.permissions import IsOwnerOrReadOnly, IsCourierOfOffer, IsAdmin
-from rest_framework.pagination import PageNumberPagination
-from items.swagger_schemas.unified_item_schema import item_creation_body_schema
+from items.permissions import IsOwnerOrReadOnly, IsCourierOfOffer
 
+from rest_framework.pagination import PageNumberPagination
 
 
 class StandardResultsSetPagination(PageNumberPagination):
@@ -23,7 +20,6 @@ class StandardResultsSetPagination(PageNumberPagination):
     max_page_size = 100
 
 
-# ---------------------- Item Views ----------------------
 class ItemListCreateAPIView(generics.ListCreateAPIView):
     """
     GET: List user's own items
@@ -114,34 +110,6 @@ class RequestDestroyAPIView(generics.DestroyAPIView):
 
 
 # ---------------------- Unified Creation Endpoint ----------------------
-class UnifiedItemCreateView(generics.GenericAPIView):
-    """
-    Single endpoint to create Item, pictures, categories, pickup info, etc.
-    """
-    serializer_class = UnifiedItemSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-    @swagger_auto_schema(
-        operation_description="Create an item, pictures, categories, etc. in a single request.",
-        request_body=item_creation_body_schema,
-        responses={
-            201: "Created the Item successfully.",
-            400: "Invalid data",
-            401: "Unauthorized"
-        }
-    )
-    def post(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        if serializer.is_valid():
-            item = serializer.save()
-            return Response(
-                {
-                    "message": "Item created successfully!",
-                    "item_id": item.id
-                },
-                status=status.HTTP_201_CREATED
-            )
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class GetAllCategoriesView(APIView):
     operation_description="Retrieve a list of all available categories."
@@ -158,35 +126,3 @@ class GetAllCategoriesView(APIView):
         all_categories = ItemCategory.objects.all()
         return Response(all_categories.values(), status=status.HTTP_200_OK)
 
-class VerifyItemView(APIView):
-    permission_classes = [IsAdmin]
-    serializer_class = ItemVerificationSerializer
-
-    @swagger_auto_schema(
-        operation_description="Verify user passport",
-        request_body=ItemVerificationSerializer,
-        responses={
-            200: "User passport verified successfully.",
-            400: "Bad request - Validation error",
-        })
-    def post(self, request, *args, **kwargs):
-        serializer = self.serializer_class(data=request.data)
-        if serializer.is_valid():
-            validated_data = serializer.validated_data
-            item = Item.get_item_by_id(validated_data["item_id"])
-            if not item:
-                return Response({"message": "Item not found."}, status=status.HTTP_404_NOT_FOUND)
-
-            if not item.is_pictures_uploaded:
-                return Response({"message": "Item photos are not uploaded"}, status=status.HTTP_400_BAD_REQUEST)
-
-            if validated_data["is_item_verified"]:
-                item.set_verification_status("verified")
-                # send_passport_verification_sccuess_email(user)
-
-            if not validated_data["is_item_verified"]:
-                item.set_verification_status("rejected")
-                # send_passport_verification_failed_email(user, validated_data["message"])
-
-            return Response({"message": "Item was verified successfully."}, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
