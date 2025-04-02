@@ -87,11 +87,9 @@ class ItemPicture(models.Model):
     item = models.ForeignKey(
         Item,
         on_delete=models.CASCADE,
-        related_name='image'
+        related_name='pictures'
     )
-
     image = models.ImageField(upload_to='item_pictures/', default="default_item.jpg")
 
     def __str__(self):
-        return f"Picture for {self.item.name}: {self.picture.url if self.picture else 'No image'}"
-
+        return f"Picture for {self.item.name}: {self.image.url if self.image else 'No image'}"
