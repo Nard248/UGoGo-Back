@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'locations',
     'django_filters',
     'corsheaders',
+    'azure_storage_handler',
     'allauth.socialaccount.providers.google',
 ]
 
