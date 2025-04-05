@@ -2,6 +2,9 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django.conf import settings
 
+from azure_storage_handler.storages import AzureItemImageStorage
+from azure_storage_handler.utils import item_picture_upload_path
+
 
 class ItemCategory(models.Model):
     name = models.CharField(max_length=255)
@@ -89,7 +92,7 @@ class ItemPicture(models.Model):
         on_delete=models.CASCADE,
         related_name='pictures'
     )
-    image = models.ImageField(upload_to='item_pictures/', default="default_item.jpg")
+    image = models.ImageField(storage=AzureItemImageStorage(), upload_to=item_picture_upload_path, default="default_item.jpg")
 
     def __str__(self):
         return f"Picture for {self.item.name}: {self.image.url if self.image else 'No image'}"

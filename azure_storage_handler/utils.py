@@ -1,19 +1,16 @@
-from azure.storage.blob import BlobServiceClient
-from django.conf import settings
-import uuid
+import os
 
-def upload_file_to_azure(file, container_name=None):
-    if not file:
-        raise ValueError("No file provided for upload")
+ALLOWED_IMAGE_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.gif', '.webp'}
 
-    file_name = f"{uuid.uuid4()}_{file.name}"
-    container_name = container_name or settings.AZURE_CONTAINERS
+def item_picture_upload_path(instance, filename):
+    ext = os.path.splitext(filename)[1].lower()
 
-    blob_service_client = BlobServiceClient.from_connection_string(
-        f"DefaultEndpointsProtocol=https;AccountName={settings.AZURE_ACCOUNT_NAME};AccountKey={settings.AZURE_STORAGE_ACCOUNT_KEY};EndpointSuffix=core.windows.net"
-    )
-    blob_client = blob_service_client.get_blob_client(container=container_name, blob=file_name)
+    if ext not in ALLOWED_IMAGE_EXTENSIONS:
+        raise ValueError(f"Unsupported file extension: {ext}")
 
-    blob_client.upload_blob(file.read(), overwrite=True)
+    if instance.pk:
+        new_filename = f"{instance.pk}{ext}"
+    else:
+        new_filename = f"temp{ext}"
 
-    return f"https://{settings.AZURE_STORAGE_ACCOUNT_NAME}.blob.core.windows.net/{container_name}/{file_name}"
+    return f"item_pictures/{new_filename}"
