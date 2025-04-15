@@ -5,7 +5,7 @@ from rest_framework.test import APITestCase
 
 from users.models import Users
 from items.models.items import Item, ItemCategory, ItemPicture
-from items.models.request import Request
+from flight_requests.models.request import Request
 from offers.models import Offer, Flight, UserFlight
 from locations.models import Country, City, Airport
 from rest_framework_simplejwt.tokens import RefreshToken
