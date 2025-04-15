@@ -11,7 +11,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 env = environ.Env()
 
-environ.Env.read_env(os.path.join(BASE_DIR, '.env.local'))
+environ.Env.read_env(os.path.join(BASE_DIR, '.env.test'))
 
 os.environ['SSL_CERT_FILE'] = certifi.where()
 os.environ['SENDGRID_API_KEY'] = "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"
@@ -90,29 +90,29 @@ TEMPLATES = [
 WSGI_APPLICATION = 'ugogo.wsgi.application'
 
 # Database configuration
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': 'ugogo_db',
-#         'USER': 'ugogo_admin',
-#         'PASSWORD': 'FCxV3VrZvUCg6QgA',
-#         'HOST': 'ugogo.postgres.database.azure.com',
-#         'PORT': '5432',
-#         'OPTIONS': {
-#             'sslmode': 'require',
-#         },
-#     }
-# }
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'postgres',
-        'USER': 'postgres',
-        'PASSWORD': '1234',
-        'HOST': 'localhost',
+        'NAME': 'ugogo_db',
+        'USER': 'ugogo_admin',
+        'PASSWORD': 'FCxV3VrZvUCg6QgA',
+        'HOST': 'ugogo.postgres.database.azure.com',
         'PORT': '5432',
+        'OPTIONS': {
+            'sslmode': 'require',
+        },
     }
 }
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'postgres',
+#         'USER': 'postgres',
+#         'PASSWORD': '1234',
+#         'HOST': 'localhost',
+#         'PORT': '5432',
+#     }
+# }
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
