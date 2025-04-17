@@ -1,9 +1,8 @@
 import stripe
 from rest_framework.generics import ListAPIView, CreateAPIView
-from rest_framework.permissions import IsAuthenticated
 
 from flight_requests.models.request import Request, RequestPayment
-from flight_requests.serializers import RequestSerializer
+from flight_requests.serializers import RequestSerializer, FlightRequestActionSerializer
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -14,7 +13,7 @@ class UserRequestListView(ListAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return Request.objects.filter(offer__user_flight__user=self.request.user)
+        return Request.objects.select_related('item', 'offer').filter(offer__user_flight__user=self.request.user)
 
 class CreateRequestView(CreateAPIView):
     serializer_class = RequestSerializer
@@ -46,8 +45,8 @@ class CreateRequestView(CreateAPIView):
                 }],
                 mode='payment',
                 metadata={'request_id': str(flight_request.id)},
-                success_url='https://yourdomain.com/payment-success?session_id={CHECKOUT_SESSION_ID}',
-                cancel_url='https://yourdomain.com/payment-cancelled',
+                success_url='http://192.168.11.54:3000/payment-success?session_id={CHECKOUT_SESSION_ID}',
+                cancel_url='http://192.168.11.54:3000/payment-error'
             )
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -89,3 +88,39 @@ class ConfirmStripeSessionView(APIView):
                 return Response({"status": "pending", "message": "Payment not completed yet"})
         except Exception as e:
             return Response({"error": str(e)}, status=500)
+
+
+
+class FlightRequestActionView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        # Deserialize the incoming data
+        serializer = FlightRequestActionSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        # Extract validated data
+        request_id = serializer.validated_data['request_id']
+        action = serializer.validated_data['action']
+
+        try:
+            flight_request = Request.objects.get(id=request_id, requester=request.user)
+        except Request.DoesNotExist:
+            return Response({"error": "Request not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        if action == "accepted":
+            flight_request.status = 'in_process'
+        elif action == "rejected":
+            flight_request.status = "rejected"
+
+
+        flight_request.save()
+
+
+
+        return Response({
+            "status": action,
+            "message": f"Offer has been {action}",
+            "offer": RequestSerializer(flight_request).data
+        }, status=status.HTTP_200_OK)
+

@@ -7,9 +7,10 @@ from offers.models import Offer
 
 class Request(models.Model):
     STATUS_CHOICES = [
-        ('open', 'Open'),
-        ('accepted', 'Accepted'),
+        ('completed', 'Completed'),
+        ('pending', 'Pending'),
         ('rejected', 'Rejected'),
+        ('in_process', 'In_process'),
     ]
 
     item = models.ForeignKey(
@@ -29,7 +30,7 @@ class Request(models.Model):
     )
 
     comments = models.TextField(blank=True, null=True)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='open')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -51,7 +52,7 @@ class RequestPayment(models.Model):
         on_delete=models.CASCADE
     )
     payment_id = models.CharField(max_length=255)
-    status = models.CharField(max_length=20, choices=Request.STATUS_CHOICES, default='pending')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

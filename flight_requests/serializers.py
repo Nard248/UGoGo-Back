@@ -1,4 +1,7 @@
 import stripe
+
+from items.serializers import ItemSerializer
+from offers.serializer.offer_serializer import OfferSerializer
 from ugogo.settings import STRIPE_SECRET_KEY
 from rest_framework import serializers
 
@@ -12,9 +15,14 @@ class RequestPaymentSerializer(serializers.ModelSerializer):
 
 
 class RequestSerializer(serializers.ModelSerializer):
+    # item = ItemSerializer()
+    # offer = OfferSerializer()
     payment = RequestPaymentSerializer(read_only=True)
-
     class Meta:
         model = Request
         fields = ['id', 'item', 'offer', 'requester', 'comments', 'created_at', 'updated_at', 'payment']
         read_only_fields = ['id', 'requester', 'created_at', 'updated_at', 'payment']
+
+class FlightRequestActionSerializer(serializers.Serializer):
+    request_id = serializers.IntegerField()
+    action = serializers.ChoiceField(choices=['accept', 'reject'])

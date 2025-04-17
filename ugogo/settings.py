@@ -24,7 +24,7 @@ SECRET_KEY = 'django-insecure-&b)b9=ldmzq6p%v7myop3d+g8=a9pwm$^j0p1+6rhmn#l^^zft
 DEBUG = True
 
 ALLOWED_HOSTS = ['ugogo-auhdbad8drdma7f6.canadacentral-01.azurewebsites.net', '127.0.0.1', '0.0.0.0', 'localhost',
-                 "192.168.11.52", "192.168.11.72", "192.168.200.249", "192.168.11.55"]
+                 "192.168.11.52", "192.168.11.72", "192.168.200.249", "192.168.11.55", '192.168.5.53']
 
 AUTH_USER_MODEL = 'users.Users'
 
@@ -179,7 +179,8 @@ CORS_ALLOWED_ORIGINS = [
     'http://0.0.0.0',
     'http://192.168.11.70',
     'http://localhost:3000',
-    'http://192.168.184.180:3000'
+    'http://192.168.184.180:3000',
+    'http://192.168.11.54:3000'
 ]
 
 
