@@ -124,7 +124,7 @@ class RequestSerializer(serializers.ModelSerializer):
             'created_at',
             'updated_at',
         ]
-        read_only_fields = ['id', 'item', 'offer', 'user', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'item', 'offer', 'user', 'created_at', 'updated_at', 'status']
 
     def validate_suggested_price(self, value):
         if value <= 0:

@@ -15,13 +15,13 @@ class RequestPaymentSerializer(serializers.ModelSerializer):
 
 
 class RequestSerializer(serializers.ModelSerializer):
-    # item = ItemSerializer()
-    # offer = OfferSerializer()
+    item = ItemSerializer()
+    offer = OfferSerializer()
     payment = RequestPaymentSerializer(read_only=True)
     class Meta:
         model = Request
-        fields = ['id', 'item', 'offer', 'requester', 'comments', 'created_at', 'updated_at', 'payment']
-        read_only_fields = ['id', 'requester', 'created_at', 'updated_at', 'payment']
+        fields = ['id', 'item', 'offer', 'requester', 'comments', 'created_at', 'updated_at', 'payment', 'status']
+        read_only_fields = ['id', 'requester', 'created_at', 'updated_at', 'payment', 'status']
 
 class FlightRequestActionSerializer(serializers.Serializer):
     request_id = serializers.IntegerField()
