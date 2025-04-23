@@ -14,6 +14,13 @@ class RequestPaymentSerializer(serializers.ModelSerializer):
         fields = ['payment_id', 'status', 'created_at']
 
 
+class CreateRequestSerializer(serializers.ModelSerializer):
+    payment = RequestPaymentSerializer(read_only=True)
+    class Meta:
+        model = Request
+        fields = ['id', 'item', 'offer', 'requester', 'comments', 'created_at', 'updated_at', 'payment', 'status']
+        read_only_fields = ['id', 'requester', 'created_at', 'updated_at', 'payment', 'status']
+
 class RequestSerializer(serializers.ModelSerializer):
     item = ItemSerializer()
     offer = OfferSerializer()

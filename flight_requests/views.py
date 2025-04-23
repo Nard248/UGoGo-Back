@@ -2,7 +2,7 @@ import stripe
 from rest_framework.generics import ListAPIView, CreateAPIView
 
 from flight_requests.models.request import Request, RequestPayment
-from flight_requests.serializers import RequestSerializer, FlightRequestActionSerializer
+from flight_requests.serializers import RequestSerializer, FlightRequestActionSerializer, CreateRequestSerializer
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -16,18 +16,23 @@ class UserRequestListView(ListAPIView):
         return Request.objects.select_related('item', 'offer').filter(offer__user_flight__user=self.request.user)
 
 class CreateRequestView(CreateAPIView):
-    serializer_class = RequestSerializer
+    serializer_class = CreateRequestSerializer
     permission_classes = [IsAuthenticated]
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        # Save the request object and attach the logged-in user
+        if request.user.passport_verification_status != 'verified':
+            return Response(
+                {"detail": "Passport not verified."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
         flight_request = serializer.save(requester=request.user)
 
         offer = flight_request.offer
-        # item = flight_request.item
+
 
         try:
             session = stripe.checkout.Session.create(
