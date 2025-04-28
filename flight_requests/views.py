@@ -25,7 +25,7 @@ class CreateRequestView(CreateAPIView):
 
         if request.user.passport_verification_status != 'verified':
             return Response(
-                {"detail": "Passport not verified."},
+                {"error": "Passport not verified."},
                 status=status.HTTP_403_FORBIDDEN
             )
 
