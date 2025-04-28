@@ -27,4 +27,5 @@ urlpatterns = [
     path("offers/", include("offers.urls")),
     path('items/', include('items.urls')),
     path('flight-requests/', include('flight_requests.urls')),
+    path('core/', include('core.urls')),
 ]

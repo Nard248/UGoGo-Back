@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'offers',
     'items',
     'locations',
+    'core',
     'flight_requests',
     'django_filters',
     'corsheaders',
