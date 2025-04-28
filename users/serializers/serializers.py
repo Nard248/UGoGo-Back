@@ -4,7 +4,10 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
-from users.models import Users
+
+from azure_storage_handler.storages import AzurePassportStorage
+from users.models import Users, PID
+
 
 class RegisterUserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
@@ -110,3 +113,18 @@ class EmailVerificationSerializer(serializers.Serializer):
 
 class ResendVerificationCodeSerializer(serializers.Serializer):
     email = serializers.EmailField()
+
+class PIDUploadSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PID
+        fields = ['pid_type', 'pid_picture', 'pid_selfie', 'is_verified', 'expiration_date']
+
+    def create(self, validated_data):
+        user = self.context['request'].user
+
+        pid_model = PID.objects.create(
+            pid_holder=user,
+            **validated_data
+        )
+
+        return pid_model

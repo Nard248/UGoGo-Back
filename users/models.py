@@ -87,10 +87,24 @@ class Users(AbstractBaseUser, PermissionsMixin):
             return None
 
 
+from django.db import models
+
+
 class PID(models.Model):
-    picture = models.CharField(max_length=255)
+    PID_TYPE_CHOICES = [
+        ('national_id', 'National ID'),
+        ('passport', 'Passport'),
+    ]
+    pid_holder = models.ForeignKey(
+        Users,
+        related_name='pids',
+        on_delete=models.CASCADE
+    )
+    pid_type = models.CharField(max_length=20, choices=PID_TYPE_CHOICES)
+    pid_picture = models.ImageField(upload_to='pid_pictures/')
+    pid_selfie = models.ImageField(upload_to='pid_selfies/', null=True, blank=True)
     is_verified = models.BooleanField(default=False)
-    expiration_date = models.DateField()
+    expiration_date = models.DateField(default=datetime.now() + timedelta(days=30))
 
     def __str__(self):
-        return f"PID Verified: {self.is_verified}"
+        return f"PID Type: {self.pid_type}, Verified: {self.is_verified}"
