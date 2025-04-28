@@ -113,9 +113,9 @@ class FlightRequestActionView(APIView):
         except Request.DoesNotExist:
             return Response({"error": "Request not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        if action == "accepted":
+        if action == "accept":
             flight_request.status = 'in_process'
-        elif action == "rejected":
+        elif action == "reject":
             flight_request.status = "rejected"
 
 
