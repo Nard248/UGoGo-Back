@@ -47,6 +47,7 @@ class Users(AbstractBaseUser, PermissionsMixin):
     email_verification_code = models.CharField(max_length=6, blank=True, null=True)
     code_expiration = models.DateTimeField(blank=True, null=True)
 
+    balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
 
     objects = CustomUserManager()
 
