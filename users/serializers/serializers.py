@@ -42,7 +42,8 @@ class CustomUserSerializer(serializers.ModelSerializer):
             'date_joined',
             'is_email_verified',
             'passport_verification_status',
-            'is_passport_uploaded'
+            'is_passport_uploaded',
+            'balance'
         ]
         # Make these fields read-only as they shouldn't be directly modified through this serializer
         read_only_fields = [
@@ -51,7 +52,8 @@ class CustomUserSerializer(serializers.ModelSerializer):
             'date_joined',
             'is_email_verified',
             'passport_verification_status',
-            'is_passport_uploaded'
+            'is_passport_uploaded',
+            'balance'
         ]
 
 
