@@ -49,6 +49,7 @@ class Users(AbstractBaseUser, PermissionsMixin):
     email_verification_code = models.CharField(max_length=6, blank=True, null=True)
     code_expiration = models.DateTimeField(blank=True, null=True)
 
+    balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
 
     objects = CustomUserManager()
 
@@ -141,6 +142,7 @@ class EmailVerificationCode(models.Model):
         self.code = ''.join(random.choices(string.digits, k=6))
         self.expires_at = datetime.now() + timedelta(minutes=30)
         self.save()
+        return self.code
 
     def is_expired(self):
         return datetime.now() > self.expires_at

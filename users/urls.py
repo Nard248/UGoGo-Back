@@ -4,7 +4,7 @@ from .views.admin_user_verification_view import VerifyUserPassportView
 from .views.pid_verification import PIDUploadView
 from .views.views import RegisterUserView, CustomTokenObtainPairView, LogOutView, VerifyEmailView, ResendVerificationCodeView, SendResedPasswordLink, UserInfoView, UserListView
 from rest_framework_simplejwt.views import TokenRefreshView, TokenBlacklistView
-from .views.card import SendCardVerificationEmailView
+from .views.card import SendCardVerificationEmailView, BankCardViewSet, PayOutView
 
 from .views.admin_login import AdminLoginView
 
@@ -22,7 +22,8 @@ urlpatterns = [
     path('users/', UserListView.as_view(), name='user-list'),
     path('pid-upload/', PIDUploadView.as_view(), name='user-list'),
     path('send-verification-code/', SendCardVerificationEmailView.as_view(), name='send-verification-code'),
-    # path('bankcards/', BankCardListView.as_view(), name='bankcard-list'),  # GET and POST
+    path('bankcards/', BankCardViewSet.as_view(), name='bankcard-list'),
+    path('pay-out/', PayOutView.as_view(), name='bankcard-list'),
     # path('bankcards/<int:pk>/', BankCardDetailView.as_view(), name='bankcard-detail'),  # GET, PUT, PATCH, DELETE
 
 ]
