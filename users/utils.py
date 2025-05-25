@@ -1,9 +1,12 @@
 import os
+from datetime import datetime
 
 from django.core.mail import send_mail
 from sendgrid import SendGridAPIClient, Mail
 import logging
-from .models import Users
+from django.utils import timezone
+
+from .models import Users, EmailVerificationCode
 from ugogo import settings
 
 logger = logging.getLogger(__name__)
@@ -18,6 +21,17 @@ def send_verification_email(user):
     except Exception as e:
         logger.error("Failed to send email", exc_info=True)
         raise e
+
+def send_card_verification_email(user, code_generator):
+    verification_code = code_generator.generate_code()
+    subject = "Your Card Verification Code"
+    message = f"Dear {user.full_name},\n\nYou just attapted: {verification_code}\n\nThis code expires in 10 minutes."
+    try:
+        send_mail(subject, message, settings.EMAIL_HOST_USER, [user.email])
+    except Exception as e:
+        logger.error("Failed to send email", exc_info=True)
+        raise e
+
 
 def reset_user_password(user:Users):
     subject = "Reset Your Password"
@@ -45,3 +59,15 @@ def send_passport_verification_failed_email(user: Users, rejection_reason: str):
     except Exception as e:
         logger.error("Failed to send passport verification failure email", exc_info=True)
         raise e
+
+def check_verification_code(verification_code, user):
+    existing_code = EmailVerificationCode.objects.filter(
+        user=user,
+        code=verification_code,
+    ).first()
+
+
+    if not existing_code or existing_code.expires_at < timezone.now():
+        raise Exception("No active verification code found.")
+
+    return existing_code

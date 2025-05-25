@@ -1,3 +1,5 @@
+import random
+import string
 from datetime import datetime, timedelta
 from random import randint
 
@@ -109,3 +111,41 @@ class PID(models.Model):
 
     def __str__(self):
         return f"PID Type: {self.pid_type}, Verified: {self.is_verified}"
+
+
+
+class BankCard(models.Model):
+    user = models.ForeignKey(
+        Users,
+        related_name='bank_cards',
+        on_delete=models.CASCADE
+    )
+    card_number = models.CharField(max_length=16)
+    card_holder_name = models.CharField(max_length=100)
+    expiration_date = models.DateField() # Store the first day of the expiration month
+
+    def __str__(self):
+        return f"Card Number: {self.card_number}, Card Holder: {self.card_holder_name}"
+
+
+
+class EmailVerificationCode(models.Model):
+    user = models.ForeignKey(
+        Users,
+        related_name='verification_codes',
+        on_delete=models.CASCADE
+    )
+    code = models.CharField(max_length=6)
+    expires_at = models.DateTimeField()
+
+    def generate_code(self):
+        self.code = ''.join(random.choices(string.digits, k=6))
+        self.expires_at = datetime.now() + timedelta(minutes=30)
+        self.save()
+        return self.code
+
+    def is_expired(self):
+        return datetime.now() > self.expires_at
+
+    def __str__(self):
+        return f"Verification code for user {self.user.username}"
