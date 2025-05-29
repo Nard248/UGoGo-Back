@@ -8,6 +8,7 @@ from rest_framework.exceptions import MethodNotAllowed
 from rest_framework.permissions import IsAuthenticated
 from ..models import BankCard, EmailVerificationCode
 from ..serializers.bank_card_serializer import BankCardSerializer
+from ..serializers.payout_serializer import PayOutSerializer
 from ..utils import send_card_verification_email, check_verification_code
 
 
@@ -15,31 +16,16 @@ class PayOutView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
-        verification_code = request.data.get("verification_code")
-        transfer_amount = request.data.get("transfer_amount")
-        card_id = request.data.get("card_id")
+        serializer = PayOutSerializer(data=request.data, context={"request": request})
+        serializer.is_valid(raise_exception=True)
 
-        if not verification_code or not transfer_amount or not card_id:
-            return Response({"error": "Missing required fields."}, status=status.HTTP_400_BAD_REQUEST)
+        # All validations passed
+        validated_data = serializer.validated_data
+        user = request.user
+        card_id = validated_data["card_id"]
+        transfer_amount = validated_data["transfer_amount"]
 
-        # Verify the code
-        # try:
-        check_verification_code(verification_code, request.user)
-        # except:
-            # return Response({"error": "Invalid or expired verification code."}, status=status.HTTP_400_BAD_REQUEST)
-
-        # Ensure transfer_amount is a valid number
-        try:
-            transfer_amount = float(transfer_amount)
-        except ValueError:
-            return Response({"error": "Invalid transfer amount."}, status=status.HTTP_400_BAD_REQUEST)
-
-        # Check balance
-        if request.user.balance < transfer_amount:
-            return Response({"error": "Insufficient balance."}, status=status.HTTP_400_BAD_REQUEST)
-
-        # Proceed with payout
-        # make_payment(request.user, card_id, transfer_amount)
+        # Proceed with payout (e.g., make_payment(user, card_id, transfer_amount))
 
         return Response({"message": "Payment processed successfully."}, status=status.HTTP_200_OK)
 
