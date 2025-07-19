@@ -6,6 +6,8 @@ from locations.models import Airport
 from items.models.items import ItemCategory
 from offers.models import Flight, UserFlight, Offer
 from users.models import Users
+from decimal import Decimal
+
 
 class UnifiedOfferCreationSerializer(serializers.Serializer):
     """
@@ -56,6 +58,23 @@ class UnifiedOfferCreationSerializer(serializers.Serializer):
             if not ItemCategory.objects.filter(pk=cat_id).exists():
                 raise serializers.ValidationError(f"Invalid category_id: {cat_id}")
         return value
+
+    def validate(self, validate_data):
+        price = validate_data.get('price')
+        weight = validate_data.get('available_weight')
+
+        if weight is None or price is None:
+            raise serializers.ValidationError("Both available_weight and price are required.")
+
+        pmin = Decimal('25') + (weight * Decimal('2'))
+        pmax = pmin * Decimal('1.5')
+
+        if not (pmin <= price <= pmax):
+            raise serializers.ValidationError({
+                'price': f"Price must be between ${pmin:.2f} and ${pmax:.2f} for weight {weight}."
+            })
+
+        return validate_data
 
     def create(self, validated_data):
         request_user = self.context['request'].user
