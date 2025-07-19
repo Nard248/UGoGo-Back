@@ -29,28 +29,33 @@ class AdvancedOfferSearchSerializer(serializers.Serializer):
 
     def search_offers(self):
         data = self.validated_data
-        offers = Offer.objects.filter(status='available', courier__passport_verification_status='verified')
 
-        if data.get('origin_airport'):
-            offers = offers.filter(user_flight__flight__from_airport__airport_code=data['origin_airport'])
-        if data.get('destination_airport'):
-            offers = offers.filter(user_flight__flight__to_airport__airport_code=data['destination_airport'])
-        if data.get('min_price') is not None:
-            offers = offers.filter(price__gte=data['min_price'])
-        if data.get('max_price') is not None:
-            offers = offers.filter(price__lte=data['max_price'])
-        if data.get('departure_after'):
-            offers = offers.filter(user_flight__flight__departure_datetime__gte=data['departure_after'])
-        if data.get('departure_before'):
-            offers = offers.filter(user_flight__flight__departure_datetime__lte=data['departure_before'])
-        if data.get('arrival_after'):
-            offers = offers.filter(user_flight__flight__arrival_datetime__gte=data['arrival_after'])
-        if data.get('arrival_before'):
-            offers = offers.filter(user_flight__flight__arrival_datetime__lte=data['arrival_before'])
-        if data.get('weight') is not None:
-            offers = offers.filter(available_weight__gte=data['weight'])
-        if data.get('space') is not None:
-            offers = offers.filter(available_space__gte=data['space'])
+        offers = Offer.objects.filter(
+            status='available',
+            courier__passport_verification_status='verified'
+        )
+
+        filter_map = {
+            'origin_airport': 'user_flight__flight__from_airport__airport_code',
+            'destination_airport': 'user_flight__flight__to_airport__airport_code',
+            'min_price': 'price__gte',
+            'max_price': 'price__lte',
+            'departure_after': 'user_flight__flight__departure_datetime__gte',
+            'departure_before': 'user_flight__flight__departure_datetime__lte',
+            'arrival_after': 'user_flight__flight__arrival_datetime__gte',
+            'arrival_before': 'user_flight__flight__arrival_datetime__lte',
+            'weight': 'available_weight__gte',
+            'space': 'available_space__gte',
+        }
+
+        filter_kwargs = {
+            lookup: data[key]
+            for key, lookup in filter_map.items()
+            if data.get(key) is not None
+        }
+
+        offers = offers.filter(**filter_kwargs)
+
         if data.get('categories'):
             offers = offers.filter(categories__in=data['categories']).distinct()
 
