@@ -17,7 +17,7 @@ urlpatterns = [
     # path('userflights/<int:pk>/', UserFlightDetailAPIView.as_view(), name='userflight-detail'),
     path('create_offer/', CreateOfferAPIView.as_view(), name='offer-create'),
     path('search_offer/', OfferSearchView.as_view(), name='search_offer'),
-    path('offers/advanced_search/', AdvancedOfferSearchView.as_view(), name='offer-advanced-search'),
+    path('advanced_search/', AdvancedOfferSearchView.as_view(), name='offer-advanced-search'),
     path('get_all_offers/', OfferGetAllView.as_view(), name='get-all-offers'),
     path('my_offers/', GetUserOffersView.as_view(), name='my-offers'),
 ]
