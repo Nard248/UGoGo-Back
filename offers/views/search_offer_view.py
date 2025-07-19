@@ -6,6 +6,7 @@ from rest_framework import status
 
 from offers.serializer.offer_serializer import OfferSerializer
 from offers.serializer.search_offer_serializer import OfferSearchSerializer
+from offers.serializer.advanced_offer_search_serializer import AdvancedOfferSearchSerializer
 from offers.models import Offer
 
 
@@ -48,3 +49,25 @@ class OfferGetAllView(APIView):
         offers = Offer.objects.all()
         serialized_offers = OfferSerializer(offers, many=True)
         return Response(serialized_offers.data, status=status.HTTP_200_OK)
+
+
+class AdvancedOfferSearchView(APIView):
+    permission_classes = [AllowAny]
+
+    @swagger_auto_schema(
+        exclude=False,
+        query_serializer=AdvancedOfferSearchSerializer,
+        operation_description="Search offers with advanced filters",
+        responses={
+            200: OfferSerializer(many=True),
+            400: "Bad Request",
+        }
+    )
+    def get(self, request, *args, **kwargs):
+        serializer = AdvancedOfferSearchSerializer(data=request.query_params)
+        if serializer.is_valid():
+            offers = serializer.search_offers()
+            serialized_offers = OfferSerializer(offers, many=True)
+            return Response(serialized_offers.data, status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
