@@ -26,6 +26,7 @@ class Airport(models.Model):
     city = models.ForeignKey(City, on_delete=models.CASCADE, related_name='airports')
     airport_code = models.CharField(max_length=10, unique=True)
     airport_name = models.CharField(max_length=255)
+    airport_picture_url = models.URLField(null=True, default='https://ugogostorageaccount.blob.core.windows.net/airportimage/ZTZ')
 
     def __str__(self):
         return f"{self.airport_name} ({self.airport_code})"

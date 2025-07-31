@@ -1,4 +1,3 @@
-
 from rest_framework import serializers
 from .models import Country, City, Airport, CityPolicy
 
@@ -23,7 +22,7 @@ class AirportSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Airport
-        fields = ['id', 'city', 'city_id', 'airport_code', 'airport_name']
+        fields = ['id', 'city', 'city_id', 'airport_code', 'airport_name', 'airport_picture_url']
 
 
 class CityPolicySerializer(serializers.ModelSerializer):
