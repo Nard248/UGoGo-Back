@@ -11,6 +11,7 @@ class Request(models.Model):
         ('pending', 'Pending'),
         ('rejected', 'Rejected'),
         ('in_process', 'In_process'),
+        ('in_transit', 'In_transit'),
     ]
 
     item = models.ForeignKey(
@@ -33,6 +34,23 @@ class Request(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    # STAGE 1: Sender to Courier verification
+    pickup_verification_code = models.CharField(max_length=4, blank=True, null=True)
+    pickup_code_generated_at = models.DateTimeField(blank=True, null=True)
+    pickup_code_verified = models.BooleanField(default=False)
+    pickup_code_verified_at = models.DateTimeField(blank=True, null=True)
+    pickup_verification_attempts = models.PositiveIntegerField(default=0)
+
+    # STAGE 2: Courier to Pickup Person verification
+    delivery_verification_code = models.CharField(max_length=4, blank=True, null=True)
+    delivery_code_generated_at = models.DateTimeField(blank=True, null=True)
+    delivery_code_verified = models.BooleanField(default=False)
+    delivery_code_verified_at = models.DateTimeField(blank=True, null=True)
+    delivery_verification_attempts = models.PositiveIntegerField(default=0)
+
+    # Tracking
+    max_verification_attempts = models.PositiveIntegerField(default=3)
 
     class Meta:
         ordering = ['-created_at']

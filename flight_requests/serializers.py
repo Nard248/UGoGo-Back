@@ -33,3 +33,13 @@ class RequestSerializer(serializers.ModelSerializer):
 class FlightRequestActionSerializer(serializers.Serializer):
     request_id = serializers.IntegerField()
     action = serializers.ChoiceField(choices=['accept', 'reject'])
+
+
+class PickupCodeValidationSerializer(serializers.Serializer):
+    request_id = serializers.IntegerField()
+    pickup_code = serializers.CharField(max_length=4, min_length=4)
+
+
+class DeliveryCodeValidationSerializer(serializers.Serializer):
+    request_id = serializers.IntegerField()
+    delivery_code = serializers.CharField(max_length=4, min_length=4)

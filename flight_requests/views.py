@@ -1,8 +1,15 @@
 import stripe
+from django.utils import timezone
 from rest_framework.generics import ListAPIView, CreateAPIView
 
 from flight_requests.models.request import Request, RequestPayment
-from flight_requests.serializers import RequestSerializer, FlightRequestActionSerializer, CreateRequestSerializer
+from flight_requests.serializers import (
+    RequestSerializer,
+    FlightRequestActionSerializer,
+    CreateRequestSerializer,
+    PickupCodeValidationSerializer,
+    DeliveryCodeValidationSerializer,
+)
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -109,15 +116,20 @@ class FlightRequestActionView(APIView):
         action = serializer.validated_data['action']
 
         try:
-            flight_request = Request.objects.get(id=request_id, requester=request.user)
+            flight_request = Request.objects.get(
+                id=request_id, offer__user_flight__user=request.user
+            )
         except Request.DoesNotExist:
             return Response({"error": "Request not found"}, status=status.HTTP_404_NOT_FOUND)
 
         if action == "accept":
-            flight_request.status = 'in_progress'
+            from flight_requests.utils import generate_verification_code
+
+            flight_request.pickup_verification_code = generate_verification_code('pickup')
+            flight_request.pickup_code_generated_at = timezone.now()
+            flight_request.status = 'in_process'
         elif action == "reject":
             flight_request.status = "rejected"
-
 
         flight_request.save()
 
@@ -128,4 +140,149 @@ class FlightRequestActionView(APIView):
             "message": f"Offer has been {action}",
             "offer": RequestSerializer(flight_request).data
         }, status=status.HTTP_200_OK)
+
+
+class GetPickupCodeView(APIView):
+    """Sender retrieves Code 1 to give item to courier"""
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, request_id):
+        try:
+            flight_request = Request.objects.get(
+                id=request_id,
+                requester=request.user,
+                status='in_process'
+            )
+        except Request.DoesNotExist:
+            return Response({"error": "Request not found"}, status=404)
+
+        return Response({
+            "pickup_code": flight_request.pickup_verification_code,
+            "stage": "pickup",
+            "instructions": "Provide this code to the courier when handing over your item",
+            "courier_info": {
+                "name": flight_request.offer.user_flight.user.get_full_name(),
+                "email": flight_request.offer.user_flight.user.email,
+            },
+        })
+
+
+class ValidatePickupCodeView(APIView):
+    """Courier validates Code 1 when receiving item from sender"""
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        serializer = PickupCodeValidationSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        request_id = serializer.validated_data['request_id']
+        provided_code = serializer.validated_data['pickup_code']
+
+        try:
+            flight_request = Request.objects.get(
+                id=request_id,
+                offer__user_flight__user=request.user,
+                status='in_process',
+            )
+        except Request.DoesNotExist:
+            return Response({"error": "Request not found"}, status=404)
+
+        flight_request.pickup_verification_attempts += 1
+
+        if provided_code != flight_request.pickup_verification_code:
+            flight_request.save()
+            remaining = (
+                flight_request.max_verification_attempts -
+                flight_request.pickup_verification_attempts
+            )
+            return Response({
+                "error": "Invalid pickup code",
+                "remaining_attempts": remaining,
+            }, status=400)
+
+        from flight_requests.utils import generate_verification_code
+
+        flight_request.pickup_code_verified = True
+        flight_request.pickup_code_verified_at = timezone.now()
+        flight_request.delivery_verification_code = generate_verification_code('delivery')
+        flight_request.delivery_code_generated_at = timezone.now()
+        flight_request.status = 'in_transit'
+        flight_request.save()
+
+        return Response({
+            "status": "success",
+            "message": "Item successfully received from sender. Ready for delivery.",
+            "next_stage": "delivery",
+        })
+
+
+class GetDeliveryCodeView(APIView):
+    """Sender retrieves Code 2 to share with pickup person"""
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, request_id):
+        try:
+            flight_request = Request.objects.get(
+                id=request_id,
+                requester=request.user,
+                status='in_transit',
+            )
+        except Request.DoesNotExist:
+            return Response({"error": "Request not found or item not yet picked up"}, status=404)
+
+        return Response({
+            "delivery_code": flight_request.delivery_verification_code,
+            "stage": "delivery",
+            "instructions": "Share this code with your pickup person. They will provide it to the courier.",
+            "pickup_person": {
+                "name": f"{flight_request.item.pickup_name} {flight_request.item.pickup_surname}",
+                "phone": flight_request.item.pickup_phone,
+                "email": flight_request.item.pickup_email,
+            },
+        })
+
+
+class ValidateDeliveryCodeView(APIView):
+    """Courier validates Code 2 when delivering item to pickup person"""
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        serializer = DeliveryCodeValidationSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        request_id = serializer.validated_data['request_id']
+        provided_code = serializer.validated_data['delivery_code']
+
+        try:
+            flight_request = Request.objects.get(
+                id=request_id,
+                offer__user_flight__user=request.user,
+                status='in_transit',
+            )
+        except Request.DoesNotExist:
+            return Response({"error": "Request not found"}, status=404)
+
+        flight_request.delivery_verification_attempts += 1
+
+        if provided_code != flight_request.delivery_verification_code:
+            flight_request.save()
+            remaining = (
+                flight_request.max_verification_attempts -
+                flight_request.delivery_verification_attempts
+            )
+            return Response({
+                "error": "Invalid delivery code",
+                "remaining_attempts": remaining,
+            }, status=400)
+
+        flight_request.delivery_code_verified = True
+        flight_request.delivery_code_verified_at = timezone.now()
+        flight_request.status = 'completed'
+        flight_request.save()
+
+        return Response({
+            "status": "success",
+            "message": "Delivery completed successfully!",
+            "completed_at": flight_request.delivery_code_verified_at,
+        })
 
