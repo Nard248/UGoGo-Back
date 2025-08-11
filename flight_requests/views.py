@@ -50,8 +50,8 @@ class CreateRequestView(CreateAPIView):
                 }],
                 mode='payment',
                 metadata={'request_id': str(flight_request.id)},
-                success_url='http://192.168.11.54:3000/payment-success?session_id={CHECKOUT_SESSION_ID}',
-                cancel_url='http://192.168.11.54:3000/payment-error'
+                success_url='https://ugogo-test.azurewebsites.net/payment-success?session_id={CHECKOUT_SESSION_ID}',
+                cancel_url='https://ugogo-test.azurewebsites.net/payment-error'
             )
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
