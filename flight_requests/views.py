@@ -8,12 +8,46 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+
+class MySentRequestsView(ListAPIView):
+    """Requests that I sent (as a sender)"""
+    serializer_class = RequestSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Request.objects.select_related('item', 'offer').filter(requester=self.request.user)
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
+
+
+class MyReceivedRequestsView(ListAPIView):
+    """Requests that I received (as a courier)"""
+    serializer_class = RequestSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Request.objects.select_related('item', 'offer').filter(offer__user_flight__user=self.request.user)
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
+
 class UserRequestListView(ListAPIView):
     serializer_class = RequestSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         return Request.objects.select_related('item', 'offer').filter(offer__user_flight__user=self.request.user)
+
+    def get_serializer_context(self):
+        """Pass request to serializer for verification code logic"""
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
 
 class CreateRequestView(CreateAPIView):
     serializer_class = CreateRequestSerializer
@@ -30,6 +64,8 @@ class CreateRequestView(CreateAPIView):
             )
 
         flight_request = serializer.save(requester=request.user)
+
+        flight_request.generate_verification_code()
 
         offer = flight_request.offer
 
@@ -57,8 +93,10 @@ class CreateRequestView(CreateAPIView):
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         # Return both the request data and the Stripe checkout URL
-        response_data = serializer.data
-        response_data['checkout_url'] = session.url
+        response_serializer = self.get_serializer(flight_request)
+        response_data = response_serializer.data
+        response_data['checkout_url'] = session.url  # Add stripe URL if needed
+
         return Response(response_data, status=status.HTTP_201_CREATED)
 
 class ConfirmStripeSessionView(APIView):
@@ -109,23 +147,21 @@ class FlightRequestActionView(APIView):
         action = serializer.validated_data['action']
 
         try:
-            flight_request = Request.objects.get(id=request_id, requester=request.user)
+            # FIXED: Look for requests where this user is the courier, not the requester
+            flight_request = Request.objects.get(id=request_id, offer__courier=request.user)
         except Request.DoesNotExist:
-            return Response({"error": "Request not found"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"error": "Request not found or you don't have permission to modify it"},
+                          status=status.HTTP_404_NOT_FOUND)
 
         if action == "accept":
-            flight_request.status = 'in_progress'
+            flight_request.status = 'accepted'  # Changed from 'in_progress' to match your STATUS_CHOICES
         elif action == "reject":
             flight_request.status = "rejected"
 
-
         flight_request.save()
-
-
 
         return Response({
             "status": action,
-            "message": f"Offer has been {action}",
-            "offer": RequestSerializer(flight_request).data
+            "message": f"Request has been {action}ed",
+            "request": RequestSerializer(flight_request, context={'request': request}).data
         }, status=status.HTTP_200_OK)
-

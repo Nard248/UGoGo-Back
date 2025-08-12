@@ -3,7 +3,7 @@ from django.db import models
 
 from items.models.items import Item
 from offers.models import Offer
-
+from random import randint
 
 class Request(models.Model):
     STATUS_CHOICES = [
@@ -34,11 +34,24 @@ class Request(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    verification_code = models.CharField(
+        max_length=6,
+        blank=True,
+        null=True,
+        help_text="6-digit code for in-person verification"
+    )
+
     class Meta:
         ordering = ['-created_at']
 
     def __str__(self):
         return f"Request #{self.pk} (Item: {self.item.name}, Offer: {self.offer.id}, Status: {self.status})"
+
+    def generate_verification_code(self):
+        """Generate a simple 6-digit verification code"""
+        self.verification_code = str(randint(100000, 999999))
+        self.save()
+        return self.verification_code
 
 class RequestPayment(models.Model):
     STATUS_CHOICES = [
