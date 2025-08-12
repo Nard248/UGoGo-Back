@@ -147,7 +147,7 @@ class FlightRequestActionView(APIView):
         action = serializer.validated_data['action']
 
         try:
-            # FIXED: Look for requests where this user is the courier, not the requester
+
             flight_request = Request.objects.get(id=request_id, offer__courier=request.user)
         except Request.DoesNotExist:
             return Response({"error": "Request not found or you don't have permission to modify it"},
@@ -163,5 +163,5 @@ class FlightRequestActionView(APIView):
         return Response({
             "status": action,
             "message": f"Request has been {action}ed",
-            "request": RequestSerializer(flight_request, context={'request': request}).data
+            "offer": RequestSerializer(flight_request, context={'request': request}).data #TODO key "offer" should be renamed to "request"
         }, status=status.HTTP_200_OK)

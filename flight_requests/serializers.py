@@ -16,7 +16,7 @@ class RequestPaymentSerializer(serializers.ModelSerializer):
 
 class CreateRequestSerializer(serializers.ModelSerializer):
     payment = RequestPaymentSerializer(read_only=True)
-    verification_code = serializers.SerializerMethodField()  # <- ADD THIS
+    verification_code = serializers.SerializerMethodField()
 
     class Meta:
         model = Request
