@@ -28,4 +28,5 @@ urlpatterns = [
     path('items/', include('items.urls')),
     path('flight-requests/', include('flight_requests.urls')),
     path('core/', include('core.urls')),
+    path("api/chat/", include("chat.urls")),
 ]
