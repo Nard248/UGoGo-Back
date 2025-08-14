@@ -25,5 +25,4 @@ urlpatterns = [
     path('bankcards/', BankCardViewSet.as_view(), name='bankcard-list'),
     path('pay-out/', PayOutView.as_view(), name='bankcard-list'),
     # path('bankcards/<int:pk>/', BankCardDetailView.as_view(), name='bankcard-detail'),  # GET, PUT, PATCH, DELETE
-
 ]

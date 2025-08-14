@@ -29,7 +29,7 @@ class MyReceivedRequestsView(ListAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return Request.objects.select_related('item', 'offer').filter(offer__user_flight__user=self.request.user)
+        return Request.objects.select_related('item', 'offer').filter(offer__courier=self.request.user)
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
@@ -41,7 +41,7 @@ class UserRequestListView(ListAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return Request.objects.select_related('item', 'offer').filter(offer__user_flight__user=self.request.user)
+        return Request.objects.select_related('item', 'offer').filter(offer__courier=self.request.user)
 
     def get_serializer_context(self):
         """Pass request to serializer for verification code logic"""
@@ -138,23 +138,26 @@ class FlightRequestActionView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
-        # Deserialize the incoming data
         serializer = FlightRequestActionSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        # Extract validated data
         request_id = serializer.validated_data['request_id']
         action = serializer.validated_data['action']
 
         try:
-
-            flight_request = Request.objects.get(id=request_id, offer__courier=request.user)
+            # Fix: Use the correct field path to get the courier
+            flight_request = Request.objects.get(
+                id=request_id,
+                offer__user_flight__user=request.user  # This is the correct path
+            )
         except Request.DoesNotExist:
-            return Response({"error": "Request not found or you don't have permission to modify it"},
-                          status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"error": "Request not found or you don't have permission to modify it"},
+                status=status.HTTP_404_NOT_FOUND
+            )
 
         if action == "accept":
-            flight_request.status = 'accepted'  # Changed from 'in_progress' to match your STATUS_CHOICES
+            flight_request.status = 'in_process'  # or 'accepted' based on your STATUS_CHOICES
         elif action == "reject":
             flight_request.status = "rejected"
 
@@ -163,5 +166,5 @@ class FlightRequestActionView(APIView):
         return Response({
             "status": action,
             "message": f"Request has been {action}ed",
-            "offer": RequestSerializer(flight_request, context={'request': request}).data #TODO key "offer" should be renamed to "request"
+            "request": RequestSerializer(flight_request, context={'request': request}).data
         }, status=status.HTTP_200_OK)
