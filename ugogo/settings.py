@@ -40,7 +40,11 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+
+    "channels",
+
     'django.contrib.staticfiles',
+
     'storages',
     'drf_yasg',
     'rest_framework',
@@ -56,9 +60,9 @@ INSTALLED_APPS = [
     'corsheaders',
     'azure_storage_handler',
     'allauth.socialaccount.providers.google',
-    "channels",
     "chat",
 ]
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -218,26 +222,19 @@ DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 STRIPE_SECRET_KEY = 'sk_test_51R81HEQLU3iCaOMisS0uyjCjDGdEaKRKX0tDTC79dQgHoPORR5988ZHdH9nqgehwItqzUVVnHzXgOCzk8wEQv1ai00qv65ADrD'
 STRIPE_PUBLISHABLE_KEY = 'pk_test_51R81HEQLU3iCaOMia0ZMyCk7NcuTvwfM0Oq0I0AtYBxPBAGZw4SIXD2FPTcCTWRiGemsRXGHU9EdFVeu72Y3Pw2F00noUUc9tZ'
 
-ASGI_APPLICATION = "yourproject.asgi.application"
+ASGI_APPLICATION = "ugogo.asgi.application"
 
 DATA_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024
 
-REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
-REDIS_PORT = int(os.getenv("REDIS_PORT", "6379"))
-REDIS_PASSWORD = os.getenv("REDIS_PASSWORD", "")
-REDIS_USE_SSL = os.getenv("REDIS_USE_SSL", "false").lower() == "true"
-
-REDIS_SCHEME = "rediss" if REDIS_USE_SSL else "redis"
-REDIS_URL = f"{REDIS_SCHEME}://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/0"
+REDIS_HOST = "ugogo-chat.redis.cache.windows.net"
+REDIS_PORT = 6380
+REDIS_PASSWORD = "bh2f1hthwEgGAbxd4kGQrxWZGB2mbIVjfAzCaJqbXRM="
 
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
-            "hosts": [REDIS_URL],
-            # Azure TLS: disable cert validation if you don't supply CA bundle
-            # (Prefer proper CA validation in production)
-            "ssl": {"cert_reqs": 0} if REDIS_USE_SSL else None,
+            "hosts": [f"rediss://default:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}"],
         },
     }
 }
