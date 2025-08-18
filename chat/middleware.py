@@ -2,6 +2,7 @@
 from __future__ import annotations
 from typing import Optional
 from urllib.parse import parse_qs
+import logging
 
 from asgiref.sync import sync_to_async
 from channels.middleware import BaseMiddleware
@@ -9,6 +10,8 @@ from django.contrib.auth.models import AnonymousUser
 from django.utils.functional import LazyObject
 
 from rest_framework_simplejwt.authentication import JWTAuthentication
+
+logger = logging.getLogger(__name__)
 
 
 class _ResolvedUser(LazyObject):
@@ -45,12 +48,25 @@ def _extract_bearer_from_headers(scope) -> Optional[str]:
 
 def _extract_bearer_from_querystring(scope) -> Optional[str]:
     # Optional fallback: ws://.../?token=xxx
-    query = scope.get("query_string", b"").decode()
-    if not query:
+    query_string = scope.get("query_string", b"")
+    if not query_string:
         return None
-    qs = parse_qs(query)
-    vals = qs.get("token") or []
-    return vals[0] if vals else None
+    
+    try:
+        # Handle both bytes and string
+        if isinstance(query_string, bytes):
+            query = query_string.decode("utf-8")
+        else:
+            query = str(query_string)
+        
+        if not query:
+            return None
+            
+        qs = parse_qs(query, keep_blank_values=True)
+        vals = qs.get("token") or []
+        return vals[0] if vals else None
+    except (UnicodeDecodeError, AttributeError, IndexError):
+        return None
 
 
 class JWTAuthMiddleware(BaseMiddleware):
@@ -64,10 +80,21 @@ class JWTAuthMiddleware(BaseMiddleware):
         scope = dict(scope)
         scope.setdefault("user", _ResolvedUser())
 
-        token = _extract_bearer_from_headers(scope) or _extract_bearer_from_querystring(scope)
+        # Try header first, then query string
+        token = _extract_bearer_from_headers(scope)
+        if not token:
+            token = _extract_bearer_from_querystring(scope)
+            logger.debug("Using query string token authentication")
+        
         if token:
+            logger.debug("Token found, attempting authentication")
             user = await _get_user_from_bearer(token)
             if user:
+                logger.debug(f"User authenticated: {user.id}")
                 scope["user"] = user
+            else:
+                logger.warning("Token validation failed")
+        else:
+            logger.debug("No token found in headers or query string")
 
         return await super().__call__(scope, receive, send)

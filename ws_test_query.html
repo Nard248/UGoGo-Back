@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WebSocket Query Token Test</title>
+</head>
+<body>
+    <h1>WebSocket Query Token Test</h1>
+    <div>
+        <input type="text" id="token" placeholder="Enter JWT token here" style="width: 400px">
+        <br><br>
+        <input type="number" id="otherUserId" placeholder="Other user ID" value="116">
+        <br><br>
+        <button onclick="connect()">Connect</button>
+        <button onclick="disconnect()">Disconnect</button>
+        <br><br>
+        <input type="text" id="messageInput" placeholder="Type message here" style="width: 300px">
+        <button onclick="sendMessage()">Send</button>
+    </div>
+    <div id="status" style="margin-top: 20px; font-weight: bold;"></div>
+    <div id="messages" style="margin-top: 20px; border: 1px solid #ccc; height: 300px; overflow-y: scroll; padding: 10px;"></div>
+
+    <script>
+        let socket = null;
+        const statusDiv = document.getElementById('status');
+        const messagesDiv = document.getElementById('messages');
+
+        function updateStatus(message, color = 'black') {
+            statusDiv.style.color = color;
+            statusDiv.textContent = message;
+            console.log(message);
+        }
+
+        function addMessage(message, isOwn = false) {
+            const div = document.createElement('div');
+            div.style.marginBottom = '10px';
+            div.style.padding = '5px';
+            div.style.backgroundColor = isOwn ? '#e3f2fd' : '#f5f5f5';
+            div.textContent = message;
+            messagesDiv.appendChild(div);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        function connect() {
+            const token = document.getElementById('token').value.trim();
+            const otherUserId = document.getElementById('otherUserId').value.trim();
+            
+            if (!token) {
+                updateStatus('Please enter a JWT token', 'red');
+                return;
+            }
+            
+            if (!otherUserId) {
+                updateStatus('Please enter other user ID', 'red');
+                return;
+            }
+
+            const wsUrl = `ws://localhost:8000/ws/chat/dm/user/${otherUserId}/?token=${encodeURIComponent(token)}`;
+            updateStatus('Connecting...', 'orange');
+            
+            socket = new WebSocket(wsUrl);
+            
+            socket.onopen = function(event) {
+                updateStatus('Connected successfully!', 'green');
+                addMessage('=== Connected to chat ===');
+            };
+            
+            socket.onmessage = function(event) {
+                const data = JSON.parse(event.data);
+                addMessage(`[${data.created_at}] User ${data.sender_id}: ${data.content}`);
+            };
+            
+            socket.onclose = function(event) {
+                updateStatus(`Connection closed. Code: ${event.code}`, 'red');
+                addMessage(`=== Connection closed (${event.code}) ===`);
+                socket = null;
+            };
+            
+            socket.onerror = function(event) {
+                updateStatus('WebSocket error occurred', 'red');
+                console.error('WebSocket error:', event);
+            };
+        }
+
+        function disconnect() {
+            if (socket) {
+                socket.close();
+                updateStatus('Disconnected', 'gray');
+            }
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            if (!socket || socket.readyState !== WebSocket.OPEN) {
+                updateStatus('Not connected!', 'red');
+                return;
+            }
+            
+            socket.send(JSON.stringify({ content: message }));
+            addMessage(`[Me]: ${message}`, true);
+            input.value = '';
+        }
+
+        // Allow Enter key to send message
+        document.getElementById('messageInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>
