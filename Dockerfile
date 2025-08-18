@@ -1,12 +1,15 @@
-FROM ubuntu:20.04
+FROM ubuntu:22.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    python3 \
+# Install Python 3.12 from deadsnakes PPA
+RUN apt-get update && apt-get install -y software-properties-common \
+    && add-apt-repository ppa:deadsnakes/ppa \
+    && apt-get update && apt-get install -y --no-install-recommends \
+    python3.12 \
+    python3.12-venv \
+    python3.12-dev \
     python3-pip \
-    python3-venv \
-    python3.8-dev \
     tzdata \
     build-essential \
     gcc \
@@ -16,14 +19,22 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
+# Copy requirements first for caching
+COPY requirements.txt /app/
+
+# Bootstrap pip & upgrade build tools
+RUN python3.12 -m ensurepip --upgrade \
+    && python3.12 -m pip install --upgrade pip setuptools wheel \
+    && python3.12 -m pip install --no-cache-dir -r requirements.txt \
+    && python3.12 -m pip install daphne channels
+
+# Copy project code
 COPY . /app
 
-RUN python3 --version
-
-RUN pip3 install --upgrade pip setuptools wheel
-
-RUN pip3 install --no-cache-dir -r requirements.txt
+# Collect static files (optional)
+RUN python3.12 manage.py collectstatic --noinput || true
 
 EXPOSE 8000
 
-CMD ["python3", "manage.py", "runserver", "0.0.0.0:8000"]
+# Run with Daphne (HTTP + WebSockets)
+CMD ["daphne", "-b", "0.0.0.0", "-p", "8000", "ugogo.asgi:application"]

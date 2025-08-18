@@ -40,11 +40,9 @@ class DirectDMConsumer(AsyncWebsocketConsumer):
                         getattr(self.scope.get("user"), "is_authenticated", None))
 
         user = self.scope.get("user")
-        if not user or isinstance(user, AnonymousUser) or not user.is_authenticated:
-            query_params = parse_qs(self.scope.get("query_string", b"").decode())
-            fake_id = int(query_params.get("user_id", [1])[0])
-            self.scope["user"] = type("Dummy", (), {"id": fake_id, "is_authenticated": True})()
-            user = self.scope["user"]
+        if not user or isinstance(user, AnonymousUser) or not getattr(user, "is_authenticated", False):
+            await self.close(code=4401)
+            return
 
         self.me_id: int = user.id
         self.thread: Optional[DirectThread] = None

@@ -40,11 +40,9 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-
     "channels",
-
+    "chat",
     'django.contrib.staticfiles',
-
     'storages',
     'drf_yasg',
     'rest_framework',
@@ -60,7 +58,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'azure_storage_handler',
     'allauth.socialaccount.providers.google',
-    "chat",
+
 ]
 
 
