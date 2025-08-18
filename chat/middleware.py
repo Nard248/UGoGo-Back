@@ -1,0 +1,100 @@
+# chat/middleware.py
+from __future__ import annotations
+from typing import Optional
+from urllib.parse import parse_qs
+import logging
+
+from asgiref.sync import sync_to_async
+from channels.middleware import BaseMiddleware
+from django.contrib.auth.models import AnonymousUser
+from django.utils.functional import LazyObject
+
+from rest_framework_simplejwt.authentication import JWTAuthentication
+
+logger = logging.getLogger(__name__)
+
+
+class _ResolvedUser(LazyObject):
+    def _setup(self):
+        self._wrapped = AnonymousUser()
+
+
+async def _get_user_from_bearer(token: str):
+    """
+    Validate JWT and return Django user (or None) using DRF SimpleJWT.
+    """
+    jwt_auth = JWTAuthentication()
+    try:
+        validated = jwt_auth.get_validated_token(token)
+        # get_user() hits the DB; wrap in sync_to_async
+        user = await sync_to_async(jwt_auth.get_user)(validated)
+        return user
+    except Exception:
+        return None
+
+
+def _extract_bearer_from_headers(scope) -> Optional[str]:
+    # scope["headers"] is a list of (name, value) in bytes
+    headers = dict(scope.get("headers") or [])
+    raw = headers.get(b"authorization")
+    if not raw:
+        return None
+    try:
+        prefix, token = raw.decode().split(" ", 1)
+    except ValueError:
+        return None
+    return token if prefix.lower() == "bearer" else None
+
+
+def _extract_bearer_from_querystring(scope) -> Optional[str]:
+    # Optional fallback: ws://.../?token=xxx
+    query_string = scope.get("query_string", b"")
+    if not query_string:
+        return None
+    
+    try:
+        # Handle both bytes and string
+        if isinstance(query_string, bytes):
+            query = query_string.decode("utf-8")
+        else:
+            query = str(query_string)
+        
+        if not query:
+            return None
+            
+        qs = parse_qs(query, keep_blank_values=True)
+        vals = qs.get("token") or []
+        return vals[0] if vals else None
+    except (UnicodeDecodeError, AttributeError, IndexError):
+        return None
+
+
+class JWTAuthMiddleware(BaseMiddleware):
+    """
+    Channels middleware that authenticates WebSocket connections using
+    'Authorization: Bearer <jwt>' (SimpleJWT).
+    Also supports '?token=<jwt>' as a fallback.
+    """
+
+    async def __call__(self, scope, receive, send):
+        scope = dict(scope)
+        scope.setdefault("user", _ResolvedUser())
+
+        # Try header first, then query string
+        token = _extract_bearer_from_headers(scope)
+        if not token:
+            token = _extract_bearer_from_querystring(scope)
+            logger.debug("Using query string token authentication")
+        
+        if token:
+            logger.debug("Token found, attempting authentication")
+            user = await _get_user_from_bearer(token)
+            if user:
+                logger.debug(f"User authenticated: {user.id}")
+                scope["user"] = user
+            else:
+                logger.warning("Token validation failed")
+        else:
+            logger.debug("No token found in headers or query string")
+
+        return await super().__call__(scope, receive, send)
