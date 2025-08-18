@@ -92,6 +92,7 @@ class DirectDMConsumer(AsyncWebsocketConsumer):
         try:
             payload = json.loads(text_data or "{}")
         except json.JSONDecodeError:
+            logging.error("Invalid JSON received: %s", text_data)
             return
 
         content = (payload.get("content") or "").strip()
